@@ -10,7 +10,14 @@
 function toApplicationView(c) {
   return {
     _id: c._id,
-    job: c.job,
+    job: c.job
+      ? {
+          _id: c.job._id,
+          title: c.job.title,
+          department: c.job.department,
+          company: c.job.company ? { name: c.job.company.name } : undefined,
+        }
+      : c.job,
     status: c.status,
     createdAt: c.createdAt,
     resumeOriginalName: c.resumeOriginalName,

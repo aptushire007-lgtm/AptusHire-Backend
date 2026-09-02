@@ -94,28 +94,8 @@ function validateEnv() {
           `Use an address on a domain you have verified with the provider.`
       );
     }
-    // storageService enables S3 only when all THREE are present, so checking the bucket
-    // alone let a half-configured deploy fall through to local disk. On an ephemeral
-    // filesystem (Render, Fly, any container platform) that destroys every uploaded
-    // resume on the next restart, and the damage is not a missing file: extractResumeText
-    // returns empty, and the candidate is scored on an empty document. Same class as the
-    // SMTP_HOST check above — a deploy that cannot durably hold a resume is not a working
-    // deploy, so it fails at boot rather than one application at a time.
-    const s3Missing = ["S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"].filter((k) => !process.env[k]);
-    if (s3Missing.length && process.env.ALLOW_LOCAL_STORAGE === "true") {
-      warnings.push(
-        `Object storage not configured (missing ${s3Missing.join(", ")}) but ALLOW_LOCAL_STORAGE=true — resumes are ` +
-          `written to backend/uploads. This is only safe on a single instance with persistent disk; on an ephemeral ` +
-          `filesystem the files are lost on restart and candidates are then scored on empty text.`
-      );
-    } else if (s3Missing.length) {
-      errors.push(
-        `Object storage is not configured (missing ${s3Missing.join(", ")}) — files would fall back to LOCAL DISK. ` +
-          `On an ephemeral filesystem every uploaded resume is destroyed on the next deploy or restart, after which ` +
-          `screening extracts empty text and scores the candidate on nothing. Set ALLOW_LOCAL_STORAGE=true only if this ` +
-          `host has genuinely persistent disk.`
-      );
-    }
+    const cloudinaryMissing = ["CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"].filter((k) => !process.env[k]);
+    if (cloudinaryMissing.length) errors.push(`Cloudinary storage requires ${cloudinaryMissing.join(", ")}`);
     if (!process.env.CLIENT_ORIGIN_ADMIN || !process.env.CLIENT_ORIGIN_USER) {
       warnings.push("CLIENT_ORIGIN_ADMIN / CLIENT_ORIGIN_USER not both set — CORS may reject the frontends");
     }

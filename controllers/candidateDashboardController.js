@@ -6,6 +6,7 @@ const Resume = require("../models/Resume");
 const InterviewSession = require("../models/InterviewSession");
 const AssessmentSession = require("../models/AssessmentSession");
 const AssessmentPaper = require("../models/AssessmentPaper");
+const RoleRubric = require("../models/RoleRubric");
 const Notification = require("../models/Notification");
 const CandidateProfile = require("../models/CandidateProfile");
 const CandidateDashboard = require("../models/CandidateDashboard");
@@ -163,6 +164,86 @@ async function updateProfile(req, res) {
   });
 
   res.json(profile);
+}
+
+async function getOwnApplication(req, res) {
+  const candidate = await Candidate.findOne({
+    _id: req.params.id,
+    "basicDetails.email": String(req.user.email || "").toLowerCase().trim(),
+  }).populate({
+    path: "job",
+    select: "title slug department location company",
+    populate: { path: "company", select: "name" },
+  });
+
+  if (!candidate) return res.status(404).json({ error: "Application not found" });
+
+  res.json({
+    _id: candidate._id,
+    job: candidate.job,
+    status: candidate.status,
+    createdAt: candidate.createdAt,
+    basicDetails: candidate.basicDetails,
+    resumeOriginalName: candidate.resumeOriginalName,
+    education: candidate.education,
+    experience: candidate.experience,
+    skills: candidate.skills,
+    projects: candidate.projects,
+    certificates: candidate.certificates,
+    stageHistory: (candidate.stageHistory || []).map((entry) => ({ stage: entry.stage, at: entry.at })),
+    offer: candidate.offer && candidate.offer.status !== "none"
+      ? { status: candidate.offer.status, message: candidate.offer.message, sentAt: candidate.offer.sentAt, respondedAt: candidate.offer.respondedAt }
+      : undefined,
+  });
+}
+
+async function getOwnAssessmentResult(req, res) {
+  const email = String(req.user.email || "").toLowerCase().trim();
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).json({ error: "Assessment result not found" });
+  const session = await AssessmentSession.findOne({ _id: req.params.id, status: "completed" })
+    .select("candidate company job paper status completedAt result");
+  if (!session) return res.status(404).json({ error: "Assessment result not found" });
+  const candidate = await Candidate.findOne({ _id: session.candidate, "basicDetails.email": email }).select("_id");
+  if (!candidate) return res.status(404).json({ error: "Assessment result not found" });
+  if (!session?.result?.scoredAt) return res.status(404).json({ error: "Assessment result is not available yet" });
+
+  const [job, paper] = await Promise.all([
+    Job.findById(session.job).select("title"),
+    AssessmentPaper.findById(session.paper).select("rubric"),
+  ]);
+  const rubric = paper?.rubric
+    ? await RoleRubric.findOne({ _id: paper.rubric, company: session.company }).select("criteria.id criteria.label")
+    : null;
+  const labels = new Map((rubric?.criteria || []).map((criterion) => [criterion.id, criterion.label]));
+  const totalItems = Number(session.result.totalItems || 0);
+  const totalCorrect = Number(session.result.totalCorrect || 0);
+
+  res.json({
+    _id: session._id,
+    name: job?.title ? `${job.title} Assessment` : "Assessment Result",
+    status: session.status,
+    completedAt: session.completedAt,
+    scoredAt: session.result.scoredAt,
+    overallScore: totalItems > 0 ? Math.round((totalCorrect / totalItems) * 100) : null,
+    performance: (session.result.perCriterion || []).filter((item) => Number(item.itemCount) > 0).map((item) => ({
+      id: item.criterionId,
+      label: labels.get(item.criterionId) || item.criterionId,
+      score: Math.round((Number(item.correctCount || 0) / Number(item.itemCount)) * 100),
+      correct: item.correctCount,
+      total: item.itemCount,
+    })),
+    // No strengths, improvement notes, or detailed feedback are stored in the
+    // current assessment result model, so they are intentionally omitted.
+  });
+}
+
+async function getOwnRejectionReport(req, res) {
+  const email = String(req.user.email || "").toLowerCase().trim();
+  const candidate = await Candidate.findOne({ _id: req.params.id, "basicDetails.email": email, status: "rejected" }).select("_id company");
+  if (!candidate) return res.status(404).json({ error: "Rejection analysis not found" });
+  const report = await require("../services/candidateRejectionReportService").getCandidateRejectionReport(candidate._id, candidate.company);
+  if (!report) return res.status(404).json({ error: "Rejection analysis is not available yet" });
+  res.json(report);
 }
 
 async function toggleSavedJob(req, res) {
@@ -336,6 +417,9 @@ async function initializeDashboard(userId, userName, userEmail) {
 module.exports = {
   getDashboard,
   updateProfile,
+  getOwnApplication,
+  getOwnAssessmentResult,
+  getOwnRejectionReport,
   toggleSavedJob,
   openOwnSession,
   resendOwnSessionLink,

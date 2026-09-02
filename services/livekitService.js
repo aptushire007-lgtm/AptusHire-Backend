@@ -59,8 +59,7 @@ function agentName() {
 // Off unless explicitly enabled, same shape as evidenceClipService's clipsEnabled/
 // secondaryCamEnabled: unset ⇒ env default (off); explicit tenant value wins either way. Only
 // meaningful once isEnabled(settings) is already true — there is no video path off the LiveKit
-// pipeline. Additionally requires S3 to actually be configured: Egress writes to a real S3-
-// compatible bucket server-side and cannot write to this process's local disk, so a tenant flag
+// pipeline. Additionally requires persistent Cloudinary storage to be configured, so a tenant flag
 // with no storage behind it must still behave as off rather than fail a live interview.
 function videoEnabled(settings) {
   const override = settings?.ai?.videoEnabled;
@@ -181,52 +180,10 @@ async function deleteRoom(session) {
   }
 }
 
-// Start recording the candidate's own camera + mic (never a room composite — the agent-worker
-// publishes no video, so a composite would just be the candidate's tile with nothing else in it,
-// and single-participant Egress is the simpler, cheaper request for that shape). Writes directly
-// to the same S3-compatible bucket storageService already uses; the bytes never pass through this
-// process. Best-effort: a failed start must not fail the interview session mint, since video is
-// additive to a working audio interview, not a prerequisite for one.
+// LiveKit Egress cannot write directly to Cloudinary. Full-session browser recording uses
+// interviewRecordingService and uploads through storageService instead.
 async function startRecording(session) {
-  const s3 = storageService.s3EgressConfig();
-  if (!s3) return { started: false, reason: "storage_not_configured" };
-
-  const { EgressClient, EncodedFileOutput, S3Upload } = require("livekit-server-sdk");
-  const { EncodedFileType } = require("@livekit/protocol");
-  const client = new EgressClient(httpUrl(), process.env.LIVEKIT_API_KEY, process.env.LIVEKIT_API_SECRET);
-  const identity = `candidate-${session._id}`;
-  const key = `interview-recordings/${session.company}/${session._id}-${Date.now()}.mp4`;
-
-  try {
-    const info = await client.startParticipantEgress(
-      roomName(session),
-      identity,
-      {
-        file: new EncodedFileOutput({
-          fileType: EncodedFileType.MP4,
-          filepath: key,
-          output: {
-            case: "s3",
-            value: new S3Upload({
-              accessKey: s3.accessKey,
-              secret: s3.secret,
-              region: s3.region,
-              endpoint: s3.endpoint,
-              bucket: s3.bucket,
-              forcePathStyle: s3.forcePathStyle,
-            }),
-          },
-        }),
-      },
-      { screenShare: false }
-    );
-    return { started: true, egressId: info.egressId };
-  } catch (err) {
-    // Egress not enabled on this LiveKit project, a bad S3 config, or a transient API failure —
-    // none of these may take the interview down. The session simply has no recording this time.
-    console.error(`[livekit] recording start failed for session ${session._id}: ${err.message}`);
-    return { started: false, reason: "start_failed" };
-  }
+  return { started: false, reason: "cloudinary_uses_browser_recording_pipeline" };
 }
 
 // LiveKit bills per session-minute like the Deepgram agent but at a different (lower) rate, so it
@@ -303,24 +260,9 @@ async function meterSession(session) {
 // the room-minute figure from meterSession — this only writes down WHERE the file landed (or that
 // it didn't), because playback needs a key and a status, not a cost.
 async function handleEgressEnded(egressInfo) {
-  const sessionId = sessionIdFromRoom(egressInfo?.roomName);
-  if (!sessionId) return { handled: false, reason: "not an interview room" };
-  const EGRESS_COMPLETE = 3; // @livekit/protocol EgressStatus.EGRESS_COMPLETE — see egressInfo.status
-  const completed = Number(egressInfo.status) === EGRESS_COMPLETE;
-  const file = (egressInfo.fileResults || [])[0];
-
-  const set = completed && file
-    ? {
-        "aiInterview.recordingStatus": "completed",
-        "aiInterview.recordingKey": file.filename,
-        // int64 (bigint) fields from the protobuf message — Number() is safe here, a single
-        // interview recording is nowhere near Number.MAX_SAFE_INTEGER milliseconds.
-        "aiInterview.recordingDurationMs": Number(egressInfo.endedAt - egressInfo.startedAt) / 1e6,
-      }
-    : { "aiInterview.recordingStatus": "failed" };
-
-  await InterviewSession.updateOne({ _id: sessionId, "aiInterview.egressId": egressInfo.egressId }, { $set: set });
-  return { handled: true, completed };
+  // Direct LiveKit Egress storage is unsupported after the Cloudinary migration.
+  // Browser recording is finalized by interviewRecordingService instead.
+  return { handled: false, reason: "cloudinary_uses_browser_recording_pipeline" };
 }
 
 // The webhook is the AUTHORITATIVE meter: it fires when the room actually closed, which catches
@@ -346,15 +288,10 @@ async function handleWebhookEvent(event) {
 
 // A short-lived URL the admin app can hand to a <video> element directly — Range-capable, never
 // buffered through this process. Returns null when there is nothing to play (no completed
-// recording, or S3 not configured), which the caller renders as "no recording" rather than an
+// recording, or persistent storage not configured), which the caller renders as "no recording" rather than an
 // error.
 //
-// NO LONGER CALLED. Playback moved to interviewRecordingService.playbackUrl when capture moved
-// into the browser: where an interview recording came from stopped being LiveKit's business the
-// moment recording did, and Egress rows read from the same `recordingKey` there anyway. Kept only
-// until the Egress path itself is removed (INTERVIEW-RECORDING-MEDIARECORDER-PLAN.md Step 5),
-// which the plan is explicit should be its own follow-up commit once the replacement is proven on
-// real interviews — deleting half of a still-live path now would be the worse order.
+// Kept as a compatibility helper for callers, but it only resolves Cloudinary references.
 async function getRecordingPlaybackUrl(session) {
   if (session?.aiInterview?.recordingStatus !== "completed") return null;
   return storageService.getSignedDownloadUrl(session.aiInterview.recordingKey, { expiresInSeconds: 900 });

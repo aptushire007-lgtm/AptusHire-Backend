@@ -8,6 +8,7 @@ const {
   exportCandidate,
   downloadResume,
   getAtsResult,
+  getRejectionReport,
   getAssessment,
   rerunAts,
   getInterviewReport,
@@ -28,6 +29,7 @@ router.get("/:id/export", requireAdmin, exportCandidate);
 router.patch("/:id/status", requireAdmin, moveStage); // legacy body { status }
 router.patch("/:id/stage", requireAdmin, moveStage); // preferred body { stage, note, offerMessage }
 router.get("/:id/ats", requireAdmin, getAtsResult);
+router.get("/:id/rejection-report", requireAdmin, getRejectionReport);
 router.get("/:id/assessment", requireAdmin, getAssessment); // Phase 6 explainability ("why this score")
 router.post("/:id/ats/rerun", requireAdmin, rerunAts);
 router.get("/:id/interview-report", requireAdmin, getInterviewReport);

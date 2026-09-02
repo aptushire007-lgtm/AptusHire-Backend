@@ -20,11 +20,13 @@ const { passwordChangedEmailTemplate } = require("../utils/emailTemplates");
 const { writeAuditLog } = require("../middleware/auditLog");
 const { billingEnforced } = require("../utils/billingMode");
 const { activateIfBypassed } = require("../services/demoActivationService");
+const { OAuth2Client } = require("google-auth-library");
 
 // Short-lived access token — the frontends transparently refresh it via /auth/refresh.
 // Configurable so ops can tune it without a code change. Refresh-token lifetime lives in
 // authTokens.js (REFRESH_TOKEN_TTL_DAYS).
 const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || "2h";
+const googleClient = new OAuth2Client();
 
 function sanitizeUser(user) {
   return {
@@ -239,6 +241,49 @@ async function login(req, res) {
   res.json({ token, refreshToken, user: sanitizeUser(user) });
 }
 
+async function googleLogin(req, res) {
+  const { credential } = req.body || {};
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) return res.status(503).json({ error: "Google sign-in is not configured yet" });
+  if (!credential) return res.status(400).json({ error: "Google credential is required" });
+
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: clientId });
+    payload = ticket.getPayload();
+  } catch {
+    return res.status(401).json({ error: "Google sign-in could not be verified" });
+  }
+
+  const email = String(payload?.email || "").trim().toLowerCase();
+  if (!email || !payload?.email_verified || !payload?.sub) {
+    return res.status(401).json({ error: "Google did not provide a verified email address" });
+  }
+
+  let user = await User.findOne({ email });
+  if (!user) {
+    // Google is the credential provider for this account; the random value keeps
+    // the existing required passwordHash field unusable for password login.
+    user = await User.create({
+      name: String(payload.name || email.split("@")[0]).trim(),
+      email,
+      passwordHash: await hashPassword(crypto.randomBytes(32).toString("hex")),
+      role: "candidate",
+      emailVerified: true,
+    });
+    await initializeDashboard(user._id, user.name, user.email);
+  } else if (user.role !== "candidate") {
+    return res.status(403).json({ error: "This Google account cannot access the candidate portal" });
+  } else if (!user.emailVerified) {
+    user.emailVerified = true;
+    await user.save();
+  }
+
+  const { token, refreshToken } = await issueTokens(user, req);
+  writeAuditLog({ req, action: "auth.google_login", resourceType: "User", resourceId: user._id, statusCode: 200 });
+  return res.json({ token, refreshToken, user: sanitizeUser(user) });
+}
+
 async function verifyEmail(req, res) {
   const { token } = req.body;
   if (!token) return res.status(400).json({ error: "token is required" });
@@ -442,6 +487,7 @@ module.exports = {
   register,
   adminRegister,
   login,
+  googleLogin,
   verifyEmail,
   resendVerification,
   forgotPassword,

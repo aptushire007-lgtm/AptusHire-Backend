@@ -4,6 +4,7 @@ const {
   register,
   adminRegister,
   login,
+  googleLogin,
   verifyEmail,
   resendVerification,
   forgotPassword,
@@ -66,6 +67,7 @@ const refreshLimiter = createLimiter({
 router.post("/register", signupLimiter, register);
 router.post("/admin/register", signupLimiter, adminRegister);
 router.post("/login", loginLimiter, login);
+router.post("/google", loginLimiter, googleLogin);
 router.post("/verify-email", emailActionLimiter, verifyEmail);
 router.post("/resend-verification", emailActionLimiter, resendVerification);
 router.post("/forgot-password", emailActionLimiter, forgotPassword);

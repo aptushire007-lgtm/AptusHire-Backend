@@ -3,6 +3,5 @@ node_modules/
 # same live keys as .env. Only the documented template is committed.
 .env*
 !.env.example
-uploads/
 # Generated eval artifacts (baseline.json IS committed — it is the regression reference)
 test/eval/reports/

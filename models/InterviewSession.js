@@ -925,7 +925,7 @@ const aiInterviewSchema = new mongoose.Schema(
     realtimeDurationMs: { type: Number },
     // Candidate video recording, gated behind CompanySettings.ai.sessionRecording /
     // CLIENT_RECORDING_ENABLED plus the candidate's own recordingConsent — off by default on
-    // every axis. Playback is via a short-lived presigned URL (storageService
+    // every axis. Playback is via a Cloudinary secure URL (storageService
     // .getSignedDownloadUrl), never buffered through this process — a full interview recording is
     // a different size class than the existing 6MB evidence-clip cap.
     //

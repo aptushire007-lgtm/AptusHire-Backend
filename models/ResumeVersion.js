@@ -37,6 +37,10 @@ const resumeVersionSchema = new mongoose.Schema(
     checksum: { type: String, required: true },
 
     parsedSnapshot: { type: parsedSnapshotSchema, required: true },
+    // Same candidate-reviewed suggestion cache used by legacy Resume records.
+    // Keeping it on the version lets applying preserve provenance after a
+    // version-only upload has been selected.
+    autofill: { type: mongoose.Schema.Types.Mixed },
     parseConfidence: { type: Number, min: 0, max: 100, default: 92 },
 
     isDefault: { type: Boolean, default: false },

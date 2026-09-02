@@ -64,7 +64,7 @@ async function main() {
       // Past ATS, pre-interview — the stage a real invitee sits at. The resumePath is a
       // placeholder nothing dereferences unless ATS is re-run, which this flow never does.
       status: "ats_passed",
-      resumePath: "uploads/_lk-probe-placeholder.pdf",
+      resumePath: "cloudinary:demo-placeholder",
     });
   }
 

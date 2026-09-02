@@ -1,14 +1,17 @@
+const crypto = require("crypto");
 const mongoose = require("mongoose");
 const Candidate = require("../models/Candidate");
 const Job = require("../models/Job");
 const User = require("../models/User");
 const Resume = require("../models/Resume");
+const ResumeVersion = require("../models/ResumeVersion");
 const InterviewSession = require("../models/InterviewSession");
 const AtsAssessment = require("../models/AtsAssessment");
 const ClaimGraph = require("../models/ClaimGraph");
 const { documentProfessionalism, redFlagAnalysis, keyAttributes } = require("../utils/resumeSignals");
 const { analyzeTimeline } = require("../utils/claimConsistency");
 const storageService = require("../services/storageService");
+const extractResumeText = require("../utils/extractResumeText");
 const atsService = require("../services/atsService");
 const { notifyAdmin, notifyCandidate } = require("../services/notificationService");
 const { applyTransition } = require("../services/pipelineService");
@@ -84,7 +87,7 @@ async function resolveResumeRef(req, email) {
         size: version.sizeBytes,
         originalName: version.label,
         mimeType: version.mimeType,
-        resume: { filePath: version.filePath, autofill: null },
+        resume: { filePath: version.filePath, autofill: version.autofill },
         resumeVersionId: version._id,
         versionDoc: version,
       };
@@ -119,16 +122,65 @@ async function autofillFromResume(req, res) {
   }
 
   const resumeId = String(req.body?.resumeId || "").trim();
-  if (!resumeId || !mongoose.isValidObjectId(resumeId)) {
-    return res.status(400).json({ error: "resumeId is required" });
+  const resumeVersionId = String(req.body?.resumeVersionId || "").trim();
+  if (!resumeId && !resumeVersionId) return res.status(400).json({ error: "resumeId or resumeVersionId is required" });
+
+  // The apply form has two libraries in the wild: legacy Resume documents and
+  // the newer ResumeVersion collection. Both are scoped to this account.
+  let resume = resumeId && mongoose.isValidObjectId(resumeId)
+    ? await Resume.findOne({ _id: resumeId, candidateEmail: email })
+    : null;
+  let version;
+  if (!resume && resumeVersionId && mongoose.isValidObjectId(resumeVersionId)) {
+    version = await ResumeVersion.findOne({ _id: resumeVersionId, candidateEmail: email, isArchived: false });
+    if (version) {
+      // Reuse a legacy record's richer cache when a migrated version points at
+      // the same file; otherwise parse the canonical text already stored on the version.
+      resume = await Resume.findOne({ candidateEmail: email, checksum: version.checksum });
+      if (!resume) {
+        resume = {
+          _id: version._id,
+          extractedText: version.parsedSnapshot?.rawText || "",
+          textHash: version.parsedSnapshot?.textHash || "",
+          pageBreaks: [],
+          artifacts: {},
+          autofill: version.autofill,
+        };
+      }
+    }
   }
-  // Scoped to the caller's own email: a résumé id is not a capability, and a
-  // miss is a 404 rather than a 403 so this can't be used to probe for ids.
-  const resume = await Resume.findOne({ _id: resumeId, candidateEmail: email });
   if (!resume) return res.status(404).json({ error: "Resume not found" });
+
+  // Older ResumeVersion rows may have metadata but no parsed snapshot. The
+  // selected file is already in Cloudinary, so repair the snapshot from that
+  // source before asking autofill to read it.
+  if (version && !resume.extractedText?.trim() && version.filePath) {
+    const buffer = await storageService.getObjectBuffer(version.filePath);
+    const ingest = await extractResumeText(buffer, version.mimeType);
+    if (ingest.text) {
+      version.parsedSnapshot.rawText = ingest.text;
+      version.parsedSnapshot.textHash = crypto.createHash("sha256").update(ingest.text, "utf8").digest("hex");
+      await version.save();
+      resume.extractedText = ingest.text;
+      resume.textHash = version.parsedSnapshot.textHash;
+      resume.pageBreaks = ingest.pageBreaks;
+      resume.artifacts = ingest.artifacts;
+    }
+  }
 
   const autofillService = require("../services/autofillService");
   const payload = await autofillService.suggestForResume(resume, { company: job.company });
+  if (version && !resume.save) {
+    version.autofill = {
+      textHash: version.parsedSnapshot?.textHash || resume.textHash,
+      version: payload.version,
+      promptVersion: payload.promptVersion,
+      engine: payload.engine,
+      payload,
+      at: new Date(),
+    };
+    await version.save();
+  }
   res.json(payload);
 }
 
@@ -180,7 +232,7 @@ async function applyToJob(req, res) {
   await quotaService.enforce(job.company, "storageMb", { incoming: resumeRef.size / (1024 * 1024) });
 
   // Persist the resume through the storage abstraction with a tenant-partitioned key,
-  // so it's reachable from every instance (S3/MinIO) and never leaks across tenants.
+  // so it is reachable from every instance and never leaks across tenants.
   // A library résumé is COPIED here rather than referenced: the library lives
   // outside any tenant's partition, and a tenant must never read from a path
   // shared with other tenants' candidates.
@@ -459,6 +511,12 @@ async function getAtsResult(req, res) {
   );
   if (!candidate) return res.status(404).json({ error: "Candidate not found" });
   res.json(candidate.ats);
+}
+
+async function getRejectionReport(req, res) {
+  const report = await require("../services/candidateRejectionReportService").getCandidateRejectionReport(req.params.id, req.user.company);
+  if (!report) return res.status(404).json({ error: "Rejection analysis is not available yet" });
+  res.json(report);
 }
 
 // Explainability payload (Phase 6.6) — "why this score", first-class: every
@@ -1041,6 +1099,7 @@ module.exports = {
   exportCandidate,
   downloadResume,
   getAtsResult,
+  getRejectionReport,
   getAssessment,
   rerunAts,
   getInterviewReport,

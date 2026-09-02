@@ -1,9 +1,8 @@
 const path = require("path");
 const multer = require("multer");
 
-// Memory storage so the file buffer can be handed to storageService (S3/MinIO in
-// production, local disk in dev). Avoids the multi-instance defect where a file
-// written to one instance's local disk is invisible to the others.
+// Memory storage so the file buffer can be handed to storageService (Cloudinary).
+// persistent storage is handled centrally by Cloudinary.
 // .doc (legacy Word) is rejected AT UPLOAD: no extractor supports it, so it used
 // to be accepted here and then silently scored as empty text — an auto-fail with
 // no signal to anyone. Better an honest error the candidate can act on.

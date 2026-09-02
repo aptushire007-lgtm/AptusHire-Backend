@@ -25,7 +25,7 @@ router.get("/candidate/:id/evidence", requireAdmin, listEvidence);
 router.get("/evidence/:evidenceId", requireAdmin, streamEvidenceClip);
 // Recorded answer audio — same audit-logged posture as evidence clips.
 router.get("/candidate/:id/turn-audio/:turnIndex", requireAdmin, streamTurnAudio);
-// Candidate video recording (Phase 7, default-off) — a presigned URL, not a byte stream.
+// Candidate video recording (Phase 7, default-off) — a Cloudinary secure URL, not a byte stream.
 router.get("/candidate/:id/recording", requireAdmin, getRecordingUrl);
 // Browse-all view for the admin "Recordings" page — every session with a recording attempt.
 router.get("/recordings", requireAdmin, listRecordings);

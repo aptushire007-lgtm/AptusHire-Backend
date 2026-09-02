@@ -384,6 +384,11 @@ async function runAtsForCandidate(candidate, job) {
   });
 
   await candidate.save();
+  if (candidate.status === "rejected") {
+    await require("./candidateRejectionReportService")
+      .generateCandidateRejectionReport(candidate._id, { companyId: candidate.company })
+      .catch((err) => console.error(`[ats] rejection report failed for candidate ${candidate._id}: ${err.message}`));
+  }
   return candidate;
 }
 

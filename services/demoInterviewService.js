@@ -73,7 +73,7 @@ async function createDemoInterviewLink({ label, jobTitle, jobDescription, expire
     basicDetails: { name: candidateName, email: `demo+${shortId}@internal.demo` },
     // Never dereferenced: this candidate skips ATS entirely (created straight at
     // "ats_passed"), so nothing ever tries to read the résumé file behind this path.
-    resumePath: "uploads/_demo-placeholder.pdf",
+    resumePath: "cloudinary:demo-placeholder",
     status: "ats_passed",
     // A real candidate gives this at apply time; here the super admin is standing up the
     // placeholder candidate, so it's granted directly — otherwise the interview would silently

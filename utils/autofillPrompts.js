@@ -21,7 +21,7 @@
 
 const { SECURITY_SENTENCE, fenceUntrusted } = require("./promptSafety");
 
-const AUTOFILL_PROMPT_VERSION = "2026-07-31.1";
+const AUTOFILL_PROMPT_VERSION = "2026-09-03.1";
 
 const AUTOFILL_SYSTEM =
   "You are a précis extraction engine that transcribes a résumé into the fields of a job-application form. You are " +
@@ -47,12 +47,15 @@ const AUTOFILL_SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
+        name: { type: "string" },         // full name AS WRITTEN, "" if absent
+        email: { type: "string" },        // email AS WRITTEN, "" if absent
+        phone: { type: "string" },        // phone AS WRITTEN, "" if absent
         location: { type: "string" },     // city/region AS WRITTEN, "" if absent
         linkedinUrl: { type: "string" },  // "" if absent
         portfolioUrl: { type: "string" }, // personal site / GitHub, "" if absent
         quotes: { type: "array", maxItems: 3, items: { type: "string" } },
       },
-      required: ["location", "linkedinUrl", "portfolioUrl", "quotes"],
+      required: ["name", "email", "phone", "location", "linkedinUrl", "portfolioUrl", "quotes"],
     },
     experience: {
       type: "array",

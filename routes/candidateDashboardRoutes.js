@@ -3,6 +3,9 @@ const wrapRouter = require("../middleware/wrapRouter");
 const {
   getDashboard,
   updateProfile,
+  getOwnApplication,
+  getOwnAssessmentResult,
+  getOwnRejectionReport,
   toggleSavedJob,
   openOwnSession,
   resendOwnSessionLink,
@@ -53,6 +56,9 @@ const openLimiter = createLimiter({
 // ---- Core Dashboard ----
 router.get("/", requireCandidate, getDashboard);
 router.patch("/profile", requireCandidate, updateProfile);
+router.get("/applications/:id", requireCandidate, getOwnApplication);
+router.get("/assessments/:id/result", requireCandidate, getOwnAssessmentResult);
+router.get("/applications/:id/rejection-report", requireCandidate, getOwnRejectionReport);
 router.post("/saved-jobs/:jobId", requireCandidate, toggleSavedJob);
 router.post("/sessions/:kind/:id/open", requireCandidate, openLimiter, openOwnSession);
 router.post("/sessions/:kind/:id/resend", requireCandidate, resendLimiter, resendOwnSessionLink);

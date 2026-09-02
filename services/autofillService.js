@@ -48,7 +48,7 @@ const {
   autofillPrompt,
 } = require("../utils/autofillPrompts");
 
-const AUTOFILL_VERSION = "2026-07-31.1";
+const AUTOFILL_VERSION = "2026-09-03.1";
 const PROVIDER = "openrouter";
 
 // Characters of surrounding document shown either side of a quote, so the
@@ -75,6 +75,8 @@ function sha256(str) {
 // model-derived suggestions, so the UI renders them identically.
 // ---------------------------------------------------------------------------
 const CONTACT_PATTERNS = {
+  email: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+  phone: /(?:\+?\d[\d().\s-]{7,}\d)/,
   linkedinUrl: /\b(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/[A-Za-z0-9_%-]+\/?/i,
   githubUrl: /\b(?:https?:\/\/)?(?:www\.)?github\.com\/[A-Za-z0-9_-]+\/?/i,
   siteUrl: /\bhttps?:\/\/(?!(?:[a-z]{2,3}\.)?linkedin\.com|(?:www\.)?github\.com)[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\/[^\s)]*)?/i,
@@ -103,6 +105,10 @@ function spanAt(canonicalText, start, end) {
 
 function deterministicBasics(view, canonicalText) {
   const out = {};
+  for (const [key, pattern] of [["email", CONTACT_PATTERNS.email], ["phone", CONTACT_PATTERNS.phone]]) {
+    const contact = findContact(view, canonicalText, pattern);
+    if (contact) out[key] = { value: contact.quote.trim(), spans: [contact], origin: "deterministic" };
+  }
   const linkedin = findContact(view, canonicalText, CONTACT_PATTERNS.linkedinUrl);
   if (linkedin) out.linkedinUrl = { value: linkedin.quote.replace(/\/$/, ""), spans: [linkedin], origin: "deterministic" };
 
@@ -243,6 +249,11 @@ function buildSuggestions({ canonicalText, exclusions, raw }) {
   // a human-written location line.
   const basics = deterministicBasics(view, canonicalText);
   const basicsSpans = verifySpans(raw?.basics?.quotes, view, canonicalText);
+  for (const key of ["name", "email", "phone"]) {
+    if (basics[key]) continue;
+    const value = str(raw?.basics?.[key], 400);
+    if (value && basicsSpans.length > 0) basics[key] = { value, spans: basicsSpans, origin: "ai" };
+  }
   const location = str(raw?.basics?.location, 120);
   if (location && basicsSpans.length > 0) {
     basics.location = { value: location, spans: basicsSpans, origin: "ai" };

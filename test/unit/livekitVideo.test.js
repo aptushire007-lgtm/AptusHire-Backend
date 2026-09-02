@@ -15,10 +15,10 @@ test("videoEnabled defaults OFF with no env var and no tenant override", () => {
 });
 
 test("videoEnabled requires storage to actually be configured, even if the flag says yes", () => {
-  // storageService.isEnabled() is false in this test env (no S3_* vars set) — a tenant flag with
-  // no bucket behind it must still resolve to off, not throw or half-work mid-interview.
+  // storageService.isEnabled() is false when Cloudinary is not configured — a tenant flag with
+  // no persistent storage behind it must still resolve to off, not half-work mid-interview.
   const settings = { ai: { videoEnabled: true } };
-  assert.equal(livekit.videoEnabled(settings), false, "Egress cannot write to local disk");
+  assert.equal(livekit.videoEnabled(settings), false, "Cloudinary storage is not configured");
 });
 
 test("videoEnabled respects an explicit tenant override direction (modulo the storage gate)", () => {

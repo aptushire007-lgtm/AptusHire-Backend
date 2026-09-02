@@ -147,6 +147,12 @@ async function applyTransition(candidate, toStage, { note, actorName, offerMessa
   syncOffer(candidate, target, offerMessage);
   await candidate.save();
 
+  if (target === "rejected") {
+    require("./candidateRejectionReportService")
+      .generateCandidateRejectionReport(candidate._id, { companyId: candidate.company })
+      .catch((err) => console.error(`[pipeline] rejection report failed for candidate ${candidate._id}: ${err.message}`));
+  }
+
   // Keep the two satellite "needs action" caches honest. Review Queue and AI
   // Interviews are populated by their own narrow code paths (atsService,
   // reviewQueueController) but a stage move made from OUTSIDE those flows —
