@@ -1,0 +1,54 @@
+ADITYA VELLORE
+Mysuru, Karnataka | aditya.vellore@example.com | +91-00000-04001
+
+PROFESSIONAL SUMMARY
+Machine learning engineer with two and a half years of industry
+experience following a career change from mathematics teaching. Builds
+and fine-tunes PyTorch models for document classification, writes
+production Python, and owns the SQL feature queries behind his models.
+The teaching years show in clear documentation and patient code review.
+
+SKILLS
+- Languages: Python (production services and notebooks), SQL
+- ML: PyTorch model development and fine-tuning, transformer
+  encoders for text classification, error analysis
+- MLOps: experiment tracking, model registry discipline, containerised
+  training jobs, scheduled retraining with drift checks
+- Evaluation: stratified test sets, calibration curves, per-segment
+  metric reviews before release
+- Foundations: linear algebra, probability, optimisation (taught for years)
+
+EXPERIENCE
+
+Machine Learning Engineer — Chamundi Document AI, Mysuru
+September 2022 to April 2025
+- Built the invoice-classification model (PyTorch transformer encoder);
+  macro-F1 improved from 0.81 to 0.93 over four releases.
+- Owned SQL feature pipelines against the documents warehouse.
+- Set up experiment tracking and a model registry; every production
+  model reproducible from a tagged run.
+- Added drift checks on incoming document mix with automated retraining
+  proposals reviewed by the team.
+- Wrote the team's evaluation checklist used before every release.
+
+Mathematics Teacher — Mysuru Central School
+June 2016 to March 2021
+- Taught mathematics to classes IX through XII.
+- Ran the school's programming club, teaching Python fundamentals.
+- Left teaching to retrain in machine learning full time.
+
+CAREER TRANSITION
+April 2021 to August 2022 — full-time retraining: an intensive ML
+programme, mathematics-for-ML refresher, and three portfolio projects.
+
+EDUCATION
+Bachelor of Science, Mathematics — Sharavathi Science College, 2015
+
+PROJECTS
+Regional-language receipt parser (2022)
+- Fine-tuned a compact transformer for receipt field extraction in two
+  regional languages; published the dataset card and error analysis.
+  Tech: Python, PyTorch, SQL.
+
+CERTIFICATIONS
+- Applied Machine Learning Programme, Deccan AI Academy

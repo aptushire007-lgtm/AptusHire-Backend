@@ -1,0 +1,50 @@
+MEERA KULSHRESHTHA
+Gurugram, Haryana | meera.kulshreshtha@example.com | +91-00000-02001
+
+PROFESSIONAL SUMMARY
+Data analyst with eighteen months of full-time experience turning retail
+panel data into weekly decisions. Comfortable across the full reporting
+stack: advanced SQL on the warehouse, pandas for wrangling, Tableau for
+dashboards, and Excel for ad-hoc modelling with business teams. Strong
+grounding in statistics from a dedicated statistics degree.
+
+SKILLS
+- SQL: window functions, CTEs, query plans on PostgreSQL and BigQuery
+- Python: pandas, NumPy, openpyxl, notebook-to-script refactoring
+- BI: Tableau (LOD expressions, published extracts), Tableau Prep
+- Excel: pivot models, Power Query, INDEX/MATCH, scenario tables
+- Statistics: hypothesis testing, sampling design, regression basics
+
+EXPERIENCE
+
+Data Analyst — Tarang Consumer Insights, Gurugram
+January 2025 to June 2026
+- Owned weekly category-share reporting for two FMCG clients: SQL
+  pipelines with window functions and CTEs feeding Tableau workbooks
+  read by 40 client users.
+- Rebuilt a 14-tab Excel deliverable as a parameterised Tableau
+  dashboard, cutting turnaround from two days to twenty minutes.
+- Automated panel-data cleaning in pandas: deduplication, outlet
+  matching, and weight recalibration across 2.1M monthly rows.
+- Caught a systematic double-counting issue in a client's distributor
+  feed with a reconciliation query; the correction shifted a national
+  share figure by 1.4 points.
+- Walked non-technical brand managers through findings fortnightly and
+  wrote the plain-language summary fronting every deliverable.
+- Built SQL data-quality checks that block publication when incoming
+  volumes drift beyond set thresholds.
+- Maintained the team's query style guide and reviewed juniors' SQL
+  during the graduate intake cycle.
+
+EDUCATION
+Bachelor of Science, Statistics — Rajhans College of Science, 2024
+
+PROJECTS
+Household Spend Tracker (2025)
+- Personal project: pandas pipeline over open consumption survey
+  extracts with a Tableau story exploring category elasticity by
+  income band.
+  Tech: Python, pandas, Tableau, PostgreSQL.
+
+CERTIFICATIONS
+- None

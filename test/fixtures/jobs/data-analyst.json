@@ -1,0 +1,9 @@
+{
+  "title": "Data Analyst",
+  "description": "We need a Data Analyst to turn operational data into decisions. You will write SQL against our warehouse, build Tableau dashboards for business teams, automate reporting in Python, and own data quality checks. A relevant analytics certification is preferred.",
+  "requirements": "2+ years in an analytics role. Advanced SQL (window functions, CTEs). Python for data wrangling with pandas. Tableau or an equivalent BI tool. Strong Excel for ad-hoc business modelling. Clear written communication of findings to non-technical stakeholders.",
+  "requiredSkills": ["sql", "python", "tableau", "excel", "pandas"],
+  "minExperienceYears": 2,
+  "requiredEducation": "Bachelor degree in statistics, economics, or a quantitative field",
+  "atsThreshold": 60
+}

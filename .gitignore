@@ -1,0 +1,8 @@
+node_modules/
+# Every .env variant is secret — backups/copies (.env.bak-*, .env.local, …) leak the
+# same live keys as .env. Only the documented template is committed.
+.env*
+!.env.example
+uploads/
+# Generated eval artifacts (baseline.json IS committed — it is the regression reference)
+test/eval/reports/

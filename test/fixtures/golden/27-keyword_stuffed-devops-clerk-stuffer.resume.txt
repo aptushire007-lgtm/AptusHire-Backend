@@ -1,0 +1,47 @@
+MEENAKSHI IYER
+Chennai, Tamil Nadu | meenakshi.iyer@example.com | +91-00000-02701
+
+PROFESSIONAL SUMMARY
+Dependable operations professional with over seven years of workplace
+experience across hospitality and logistics offices. Excited to move into
+cloud infrastructure and site reliability work and to keep mission-critical
+platforms running smoothly.
+
+CORE COMPETENCIES
+Kubernetes | Terraform | AWS | Linux | Prometheus
+Grafana | Docker | CI/CD pipelines | Helm | Ansible
+Incident response | Observability | Monitoring | Alerting | Shell scripting
+Cloud infrastructure | SRE | On-call rotations | Delivery pipelines
+High availability | Infrastructure as code | Capacity planning
+
+EXPERIENCE
+
+Front Office Executive — Palmgrove Suites Hotel, Chennai
+April 2017 to August 2019
+- Handled guest check-in and check-out and maintained the room allocation
+  chart across shifts.
+- Reconciled daily cash counters and prepared the morning occupancy
+  report.
+- Coordinated housekeeping requests over the internal phone line.
+
+Billing Clerk — Silverline Freight Depot, Chennai
+October 2019 to January 2022
+- Generated consignment bills and matched them against dispatch registers.
+- Filed proof-of-delivery slips and chased pending payment confirmations.
+- Kept the godown visitor log and weighbridge slips in order.
+
+Office Supervisor — Regal Orchid Banquets, Chennai
+March 2022 to February 2025
+- Supervised a five-member admin desk handling event bookings and vendor
+  passes.
+- Tracked linen and crockery inventory and raised monthly purchase lists.
+- Prepared duty rosters and approved leave swaps for the support staff.
+
+EDUCATION
+Bachelor of Business Administration — Coastal Crest College of Management, 2013
+
+PROJECTS
+- None
+
+CERTIFICATIONS
+- None

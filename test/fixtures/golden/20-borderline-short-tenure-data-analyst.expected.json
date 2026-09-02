@@ -1,0 +1,45 @@
+{
+  "job": "data-analyst",
+  "bucket": "borderline",
+  "candidate": {
+    "name": "Meera Kulshreshtha",
+    "email": "meera.kulshreshtha@example.com",
+    "phone": "+91-00000-02001",
+    "skills": ["sql", "python", "pandas", "tableau", "excel", "statistics"],
+    "experience": [
+      {
+        "title": "Data Analyst",
+        "company": "Tarang Consumer Insights",
+        "startDate": "2025-01-01",
+        "endDate": "2026-06-30",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Science",
+        "fieldOfStudy": "Statistics",
+        "institution": "Rajhans College of Science",
+        "endYear": 2024
+      }
+    ],
+    "projects": [
+      {
+        "title": "Household Spend Tracker",
+        "description": "Personal pandas pipeline over open consumption survey extracts with a Tableau story exploring category elasticity by income band.",
+        "techStack": "Python, pandas, Tableau, PostgreSQL"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Meera Kulshreshtha",
+    "gradYear": "2024",
+    "university": "Rajhans College of Science"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": [],
+    "rationale": "Genuine depth on all five required skills, a statistics degree, and unusually mature deliverables argue pass, but eighteen months of full-time experience sits 25% short of the stated two-year minimum, and trading complete skill coverage against a hard tenure bar is exactly the call that belongs with a human."
+  }
+}

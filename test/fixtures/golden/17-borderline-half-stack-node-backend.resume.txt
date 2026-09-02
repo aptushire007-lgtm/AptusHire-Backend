@@ -1,0 +1,54 @@
+PRIYANKA WAGHOLIKAR
+Nashik, Maharashtra | priyanka.wagholikar@example.com | +91-00000-01701
+
+PROFESSIONAL SUMMARY
+Backend developer with close to seven years building Node.js services for
+retail and logistics products. Strong on Express API design, REST modelling,
+and relational data on MySQL, with production messaging on RabbitMQ. All
+deployments to date have run on managed virtual machines with PM2 and
+systemd rather than containers.
+
+SKILLS
+- Languages: JavaScript (Node.js), SQL
+- Frameworks: Express, Knex.js, Socket.io
+- Data: MySQL (schema design, query tuning), RabbitMQ
+- Delivery: PM2, systemd services, Nginx reverse proxy, CI pipelines
+- Practices: REST API design, JWT authentication, request validation, unit testing
+
+EXPERIENCE
+
+Senior Backend Developer — Amaltas Logistics Software, Nashik
+November 2022 to March 2026
+- Owned the consignment booking API: nine Express services behind Nginx,
+  serving 12k requests per minute during festival peaks.
+- Designed the MySQL schema for multi-leg shipment tracking; tuned slow
+  queries with covering indexes, cutting p95 latency from 620ms to 140ms.
+- Built RabbitMQ work queues for label generation and SMS callbacks,
+  isolating third-party slowness from the booking path.
+- Ran deployments across eight Ubuntu virtual machines with PM2 cluster
+  mode and health-checked rolling restarts scripted in Bash.
+- Mentored two junior developers on Express middleware patterns and
+  error-handling conventions.
+
+Backend Developer — Sahyadri Retail Technologies, Nashik
+July 2019 to October 2022
+- Built REST APIs in Node.js and Express for a franchise billing product
+  used by 300 stores.
+- Implemented JWT authentication with refresh-token rotation shared across
+  the cashier and back-office applications.
+- Modelled promotions and inventory in MySQL; wrote migration tooling on
+  Knex.js adopted by the whole team.
+- Raised unit test coverage on the pricing module from nothing to 80%
+  with Jest.
+
+EDUCATION
+Bachelor of Engineering, Information Technology — Godavari College of Engineering, 2018
+
+PROJECTS
+Warehouse Slotting API (2024)
+- Express service that assigns rack slots from bin dimensions and picking
+  frequency; processed 400k slotting decisions in its first quarter.
+  Tech: Node.js, Express, MySQL, RabbitMQ.
+
+CERTIFICATIONS
+- None

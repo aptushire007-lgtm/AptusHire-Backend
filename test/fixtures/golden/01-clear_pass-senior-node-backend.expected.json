@@ -1,0 +1,57 @@
+{
+  "job": "backend-node",
+  "bucket": "clear_pass",
+  "candidate": {
+    "name": "Rohan Deshpande",
+    "email": "rohan.deshpande@example.com",
+    "phone": "+91-00000-01001",
+    "skills": ["node.js", "express", "mongodb", "redis", "docker", "rest", "typescript", "javascript"],
+    "experience": [
+      {
+        "title": "Senior Backend Engineer",
+        "company": "Meridian Software Labs",
+        "startDate": "2020-03-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Backend Engineer",
+        "company": "Kestrel Commerce Systems",
+        "startDate": "2017-07-01",
+        "endDate": "2020-02-29",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Nagpur Institute of Engineering",
+        "endYear": 2016
+      }
+    ],
+    "projects": [
+      {
+        "title": "Freight Rate Engine",
+        "description": "Node.js pricing service with Redis-cached rate tables and a rules DSL; 2M lookups per day in production.",
+        "techStack": "Node.js, Express, Redis, MongoDB, Docker"
+      },
+      {
+        "title": "express-idempotency-middleware",
+        "description": "Open-source Express middleware implementing idempotency keys with pluggable stores.",
+        "techStack": "Node.js, Express, Redis"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Rohan Deshpande",
+    "gradYear": "2016",
+    "university": "Nagpur Institute of Engineering"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": [],
+    "rationale": "Nearly eight years of directly relevant Node.js/Express/MongoDB/Redis/Docker production experience with concrete, verifiable depth on every required skill."
+  }
+}

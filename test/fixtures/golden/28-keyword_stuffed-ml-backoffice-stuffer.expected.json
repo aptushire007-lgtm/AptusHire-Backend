@@ -1,0 +1,53 @@
+{
+  "job": "ml-engineer",
+  "bucket": "keyword_stuffed",
+  "candidate": {
+    "name": "Farhan Qureshi",
+    "email": "farhan.qureshi@example.com",
+    "phone": "+91-00000-02801",
+    "skills": ["python", "pytorch", "mlops", "sql", "evaluation", "experiment tracking", "model registries", "training pipelines", "fine-tuning", "drift monitoring", "feature engineering", "pandas", "deep learning", "model serving"],
+    "experience": [
+      {
+        "title": "Insurance Claims Processor",
+        "company": "Sentinel Assurance Services",
+        "startDate": "2018-06-01",
+        "endDate": "2020-02-29",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Sales Coordinator",
+        "company": "Meadowlark Furnishings",
+        "startDate": "2020-04-01",
+        "endDate": "2022-07-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Back Office Executive",
+        "company": "Silverpalm Documentation Services",
+        "startDate": "2022-09-01",
+        "endDate": "2024-10-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Commerce",
+        "fieldOfStudy": "Commerce",
+        "institution": "Hilltop College of Commerce and Arts",
+        "endYear": 2015
+      }
+    ],
+    "projects": [],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Farhan Qureshi",
+    "gradYear": "2015",
+    "university": "Hilltop College of Commerce and Arts"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": ["keyword_stuffing"],
+    "rationale": "The resume lists every ML JD keyword in its competency block, yet the actual roles are claims processing, sales coordination, and back-office filing with no ML, coding, or data work at all."
+  }
+}

@@ -1,0 +1,48 @@
+DANIEL OKAFOR
+Hyderabad, Telangana | daniel.okafor@example.com | +91-00000-02601
+
+PROFESSIONAL SUMMARY
+Motivated team player with almost five years of customer-facing work and a
+keen interest in modern web technology. Looking to bring my energy and
+adaptability to a product engineering team building customer-facing
+dashboards with a modern stack.
+
+CORE COMPETENCIES
+React | TypeScript | CSS | Testing | Vite
+Reusable components | State management | REST APIs | Responsive layouts
+Flexbox | Grid | Webpack | Component testing | Render performance
+Accessibility | Interaction design | Clean code | Polished UI
+Agile teamwork | Problem solving | Fast learner
+
+EXPERIENCE
+
+Retail Store Assistant — Maplecrest Lifestyle Mart, Hyderabad
+January 2020 to April 2021
+- Restocked shelves, arranged seasonal displays, and assisted walk-in
+  customers on the shop floor.
+- Operated the billing counter during weekend rush hours.
+- Counted stock during quarterly audits with the floor supervisor.
+
+Data Entry Operator — Swiftdesk Outsourcing, Hyderabad
+June 2021 to August 2022
+- Keyed scanned invoice details into the client records portal against a
+  daily accuracy target.
+- Sorted incoming batches and flagged unreadable documents to the team
+  lead.
+
+Telecalling Executive — BlueFern Teleservices, Secunderabad
+October 2022 to December 2024
+- Called prospective customers from assigned lists to describe holiday
+  packages and log responses.
+- Updated call outcomes in the tracker sheet and met weekly talk-time
+  goals.
+- Trained two new joiners on the calling script.
+
+EDUCATION
+Bachelor of Arts, Sociology — Greenhill City College, Lagos, 2017
+
+PROJECTS
+- None
+
+CERTIFICATIONS
+- None

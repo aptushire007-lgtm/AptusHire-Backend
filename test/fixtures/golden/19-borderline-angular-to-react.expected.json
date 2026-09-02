@@ -1,0 +1,52 @@
+{
+  "job": "frontend-react",
+  "bucket": "borderline",
+  "candidate": {
+    "name": "Farhan Qureshi",
+    "email": "farhan.qureshi@example.com",
+    "phone": "+91-00000-01901",
+    "skills": ["angular", "typescript", "css", "testing", "rxjs", "react", "vite", "javascript"],
+    "experience": [
+      {
+        "title": "Frontend Engineer",
+        "company": "Quilon Fintech Works",
+        "startDate": "2023-06-01",
+        "endDate": "2026-02-28",
+        "currentlyWorking": false
+      },
+      {
+        "title": "UI Developer",
+        "company": "Meherbagh Digital Studio",
+        "startDate": "2020-08-01",
+        "endDate": "2023-05-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Technology",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Deccan Valley Institute of Technology",
+        "endYear": 2019
+      }
+    ],
+    "projects": [
+      {
+        "title": "Recipe Box",
+        "description": "Personal React application with hooks, context, and Vitest component tests; shipped as a static bundle built with Vite.",
+        "techStack": "React, TypeScript, Vite, CSS grid"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Farhan Qureshi",
+    "gradYear": "2019",
+    "university": "Deccan Valley Institute of Technology"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": [],
+    "rationale": "Five-plus years of strict TypeScript, responsive CSS, and disciplined component testing are exactly the fundamentals the role needs and argue pass, but production React is limited to one evaluation spike and a personal Vite project, so whether an Angular engineer converts fast enough to count as '3+ years of React' is a judgement call, not a score."
+  }
+}

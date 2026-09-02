@@ -1,0 +1,57 @@
+{
+  "job": "frontend-react",
+  "bucket": "clear_pass",
+  "candidate": {
+    "name": "Sofia Almeida",
+    "email": "sofia.almeida@example.com",
+    "phone": "+91-00000-00401",
+    "skills": ["react", "typescript", "css", "testing", "vite", "javascript", "sass", "storybook"],
+    "experience": [
+      {
+        "title": "Senior Frontend Engineer",
+        "company": "Brightmoor Systems",
+        "startDate": "2021-01-01",
+        "endDate": "2025-03-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "UI Engineer",
+        "company": "Cedarline Software",
+        "startDate": "2017-06-01",
+        "endDate": "2020-12-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Information Technology",
+        "institution": "Maplecrest University of Applied Sciences",
+        "endYear": 2016
+      }
+    ],
+    "projects": [
+      {
+        "title": "Gridfall",
+        "description": "Open-source CSS grid inspection devtool with a React overlay UI.",
+        "techStack": "React, TypeScript, Vite"
+      },
+      {
+        "title": "Tramline Tickets",
+        "description": "Progressive web app for a city transit hackathon with offline queueing and responsive CSS.",
+        "techStack": "React, TypeScript, webpack"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Sofia Almeida",
+    "gradYear": "2016",
+    "university": "Maplecrest University of Applied Sciences"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": [],
+    "rationale": "Nearly eight years of React/TypeScript product work with named evidence for CSS architecture, component testing, and a webpack-to-Vite migration — comfortably beyond every stated requirement."
+  }
+}

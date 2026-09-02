@@ -1,0 +1,54 @@
+SOFIA ALMEIDA
+Pune, Maharashtra | sofia.almeida@example.com | +91-00000-00401
+
+PROFESSIONAL SUMMARY
+Frontend engineer with nearly eight years building React applications for
+data-heavy enterprise products. Writes strict TypeScript, cares about CSS
+architecture that scales past fifty contributors, and insists on component
+testing before merge. Recent focus: design-system stewardship and Vite-based
+build tooling.
+
+SKILLS
+- Core: React (hooks, context, concurrent features), TypeScript, JavaScript
+- Styling: CSS custom properties, flexbox, grid, responsive design, Sass
+- Testing: React Testing Library, Vitest, Cypress, visual regression testing
+- Tooling: Vite, webpack, Storybook, monorepo build pipelines
+- Other: REST API integration, i18n, accessibility audits
+
+EXPERIENCE
+
+Senior Frontend Engineer — Brightmoor Systems, Pune
+January 2021 to March 2025
+- Co-owned the claims-processing dashboard: a React and TypeScript app with
+  140 routed screens and 30 shared domain components.
+- Rebuilt the design system tokens layer on CSS custom properties; dark mode
+  shipped across every product surface in six weeks.
+- Moved the monorepo build from webpack to Vite; median CI frontend build
+  fell from 19 minutes to 6.
+- Established component testing standards with React Testing Library and
+  Vitest; regression escapes dropped by half over a year.
+- Profiled and fixed the worst render hotspots; table scroll went from 18fps
+  to a steady 60fps on mid-range laptops.
+
+UI Engineer — Cedarline Software, Pune
+June 2017 to December 2020
+- Built form-heavy underwriting screens in React with TypeScript.
+- Implemented a responsive CSS grid layout system replacing a float-based
+  legacy framework across 80 screens.
+- Wrote Jest and React Testing Library suites for the shared component kit.
+- Integrated REST endpoints with typed client generation from API schemas.
+
+EDUCATION
+Bachelor of Engineering, Information Technology — Maplecrest University of Applied Sciences, 2016
+
+PROJECTS
+Gridfall (2023)
+- Open-source CSS grid inspection devtool with a React overlay UI.
+  Tech: React, TypeScript, Vite.
+
+Tramline Tickets (2019)
+- Progressive web app for a city transit hackathon; offline queueing and
+  responsive CSS throughout. Tech: React, TypeScript, webpack.
+
+CERTIFICATIONS
+- None

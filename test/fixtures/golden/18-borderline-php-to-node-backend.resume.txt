@@ -1,0 +1,53 @@
+TOMASZ ZIELINSKI
+Pune, Maharashtra | tomasz.zielinski@example.com | +91-00000-01801
+
+PROFESSIONAL SUMMARY
+Backend developer with eight years of production API work, most of it in
+PHP and Laravel, now transitioning to Node.js. Deep experience with REST
+design, Redis caching, Docker-based delivery, and relational data. Spent
+the final eight months at my latest employer porting two Laravel services
+to Express and TypeScript as part of a platform consolidation.
+
+SKILLS
+- Languages: PHP, JavaScript (Node.js), TypeScript, SQL
+- Frameworks: Laravel, Symfony, Express (eight months production)
+- Data: MySQL, PostgreSQL, Redis (caching, queues, rate limiting)
+- Infrastructure: Docker, docker-compose, CI pipelines, Nginx
+- Practices: REST API design, JWT authentication, integration testing
+
+EXPERIENCE
+
+Senior Backend Developer — Kranich Digital Systems, remote
+January 2022 to April 2026
+- Owned the subscription billing API built on Laravel: invoicing,
+  proration, and webhook delivery for 60k merchant accounts.
+- Introduced Redis-backed idempotency keys and rate limiting across the
+  public API, eliminating duplicate charge incidents.
+- Containerised the billing stack with Docker and moved deploys to CI
+  CI with blue-green releases; rollback time fell from 30 minutes to 3.
+- Ported the notification service and the payout scheduler from Laravel
+  to Node.js with Express and TypeScript over the final eight months,
+  matching legacy behaviour test for test.
+- Reviewed REST contract changes for three product squads.
+
+PHP Backend Developer — Bursztyn Software House, Wroclaw
+February 2018 to December 2021
+- Built REST APIs in PHP for e-commerce clients, from catalogue services
+  to order orchestration.
+- Designed MySQL schemas and tuned queries for a marketplace handling
+  40k daily orders.
+- Added Redis caching for session and catalogue reads, halving page
+  response times.
+- Wrote integration test suites that gated every deploy.
+
+EDUCATION
+Bachelor of Engineering, Computer Science — Odra Technical University, 2017
+
+PROJECTS
+Ledger Diff Tool (2023)
+- Node.js command-line tool that reconciles invoice exports between two
+  billing systems; my first substantial Express and TypeScript codebase.
+  Tech: Node.js, Express, TypeScript, PostgreSQL.
+
+CERTIFICATIONS
+- None

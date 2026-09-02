@@ -1,0 +1,57 @@
+{
+  "job": "backend-node",
+  "bucket": "clear_pass",
+  "candidate": {
+    "name": "Ananya Krishnan",
+    "email": "ananya.krishnan@example.com",
+    "phone": "+91-00000-00201",
+    "skills": ["node.js", "express", "mongodb", "redis", "docker", "rest", "javascript", "typescript", "sql"],
+    "experience": [
+      {
+        "title": "Senior Backend Developer",
+        "company": "Bluefin Data Systems",
+        "startDate": "2021-06-01",
+        "endDate": "2025-05-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Backend Developer",
+        "company": "Orchid Peak Technologies",
+        "startDate": "2018-08-01",
+        "endDate": "2021-05-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Technology",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Sundervale Institute of Technology",
+        "endYear": 2017
+      }
+    ],
+    "projects": [
+      {
+        "title": "Ledger Sync Service",
+        "description": "Node.js reconciliation service diffing courier billing feeds against internal ledgers; flagged 2.3 crore INR of overbilling in its first year.",
+        "techStack": "Node.js, Express, MongoDB, Redis, Docker"
+      },
+      {
+        "title": "queue-retry-kit",
+        "description": "Open-source library for exponential backoff and dead-letter handling on Redis-backed job queues.",
+        "techStack": "Node.js, Redis"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Ananya Krishnan",
+    "gradYear": "2017",
+    "university": "Sundervale Institute of Technology"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": [],
+    "rationale": "Almost seven years of production Node.js/Express work with concrete MongoDB, Redis, and Docker depth in every role — every required skill is evidenced in real experience bullets, well over the four-year minimum."
+  }
+}

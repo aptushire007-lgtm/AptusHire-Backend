@@ -1,0 +1,9 @@
+{
+  "title": "Machine Learning Engineer",
+  "description": "We are hiring an ML Engineer to take models from notebook to production. You will build training pipelines in Python and PyTorch, serve models behind APIs, own MLOps tooling for experiment tracking and deployment, and work with analysts on SQL feature pipelines.",
+  "requirements": "4+ years in machine learning or backend engineering with ML exposure. Strong Python. PyTorch model development and fine-tuning. MLOps practices: experiment tracking, model registries, reproducible training. SQL for feature engineering. Understanding of evaluation methodology and drift monitoring. Masters degree preferred.",
+  "requiredSkills": ["python", "pytorch", "mlops", "sql", "evaluation"],
+  "minExperienceYears": 4,
+  "requiredEducation": "Master degree in computer science, machine learning, or a quantitative field",
+  "atsThreshold": 60
+}

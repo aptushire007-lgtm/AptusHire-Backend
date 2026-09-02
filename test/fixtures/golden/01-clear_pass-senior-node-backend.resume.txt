@@ -1,0 +1,54 @@
+ROHAN DESHPANDE
+Pune, Maharashtra | rohan.deshpande@example.com | +91-00000-01001
+
+PROFESSIONAL SUMMARY
+Senior backend engineer with eight years of experience designing and operating
+production REST APIs on Node.js. Deep hands-on work with Express service
+architecture, MongoDB data modelling, Redis caching, and Docker-based delivery.
+Comfortable owning a service end to end: design, implementation, observability,
+and on-call.
+
+SKILLS
+- Languages: JavaScript (Node.js), TypeScript, SQL
+- Frameworks: Express, Fastify, Socket.io
+- Data: MongoDB (aggregation pipelines, schema design), Redis, PostgreSQL
+- Infrastructure: Docker, docker-compose, CI runners, Nginx
+- Practices: REST API design, JWT authentication, integration testing, load testing
+
+EXPERIENCE
+
+Senior Backend Engineer — Meridian Software Labs, Pune
+March 2020 to April 2025
+- Owned the order-management API cluster: 14 Express services behind an Nginx
+  gateway, serving 40k requests per minute at peak.
+- Redesigned MongoDB schemas for the shipment tracking domain; cut p95 query
+  latency from 480ms to 90ms using compound indexes and aggregation rewrites.
+- Introduced Redis-backed caching and idempotency keys for checkout flows,
+  reducing duplicate order creation incidents to zero.
+- Containerised twelve legacy services with Docker and moved deploys to a
+  blue-green pipeline; release rollbacks dropped from 40 minutes to 4.
+- Mentored four engineers; ran the service-design review forum.
+
+Backend Engineer — Kestrel Commerce Systems, Pune
+July 2017 to February 2020
+- Built REST APIs in Node.js and Express for a multi-tenant storefront platform.
+- Implemented JWT-based authentication and role-based access control shared by
+  three customer-facing applications.
+- Wrote MongoDB aggregation pipelines powering seller analytics dashboards.
+- Added integration test coverage from 0% to 70% of endpoints with supertest.
+
+EDUCATION
+Bachelor of Engineering, Computer Science — Nagpur Institute of Engineering, 2016
+
+PROJECTS
+Freight Rate Engine (2022)
+- Node.js pricing service with Redis-cached rate tables and a rules DSL;
+  handled 2M rate lookups per day in production. Tech: Node.js, Express,
+  Redis, MongoDB, Docker.
+
+Open-source: express-idempotency-middleware (2021)
+- Express middleware implementing idempotency keys with pluggable stores;
+  used in production by my own team. Tech: Node.js, Express, Redis.
+
+CERTIFICATIONS
+- None

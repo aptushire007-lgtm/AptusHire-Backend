@@ -1,0 +1,53 @@
+TASHI DOLMA
+Leh, Ladakh | tashi.dolma@example.com | +91-00000-03601
+
+PROFESSIONAL SUMMARY
+Business data analyst with five years turning warehouse data into weekly
+decisions for retail and logistics teams. Writes structured queries with
+window functions and CTEs, automates reporting in a leading data
+scripting language using its dataframe library, and builds executive
+dashboards in a drag-and-drop BI platform. Communicates findings in
+plain language that operations teams act on.
+
+SKILLS
+- Querying: warehouse structured queries — window functions, CTEs,
+  query plans and index-aware tuning
+- Scripting: a leading open-source data scripting language; dataframe
+  wrangling, notebook workflows, scheduled report automation
+- BI: drag-and-drop dashboard platform — extracts, calculated fields,
+  row-level security, executive scorecards
+- Modelling: spreadsheet business models with scenario toggles and
+  sensitivity views for finance reviews
+- Communication: written insight memos, stakeholder walkthroughs
+
+EXPERIENCE
+
+Senior Business Analyst — Khardung Retail Analytics, Chandigarh
+August 2021 to April 2025
+- Owned weekly trading reports for 140 stores: structured warehouse
+  queries feeding an executive dashboard viewed by 60 managers.
+- Automated nine manual reports with scripted dataframe pipelines;
+  saved the team roughly 30 hours a month.
+- Built a markdown-pricing dashboard that identified slow lines two
+  weeks earlier; clearance losses fell 12%.
+- Ran quarterly deep dives (basket mix, footfall, range gaps) presented
+  directly to the trading director.
+
+Data Analyst — Zanskar Logistics Insights, Chandigarh
+June 2019 to July 2021
+- Analysed delivery performance across 40 routes with window-function
+  queries over the trips warehouse.
+- Maintained the on-time-delivery scorecard in the BI platform.
+- Built spreadsheet cost models for route profitability reviews.
+
+EDUCATION
+Bachelor of Science, Statistics — Trans-Himalayan University College, 2018
+
+PROJECTS
+Stockout early-warning report (2023)
+- Scripted dataframe pipeline flagging stores trending toward stockouts
+  on top lines five days ahead; adopted by the replenishment team.
+  Tech: data scripting language, warehouse queries, BI dashboard.
+
+CERTIFICATIONS
+- Business Intelligence Practitioner, Northern Analytics Guild

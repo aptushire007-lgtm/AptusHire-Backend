@@ -1,0 +1,51 @@
+FARHAN QURESHI
+Hyderabad, Telangana | farhan.qureshi@example.com | +91-00000-01901
+
+PROFESSIONAL SUMMARY
+Frontend engineer with five and a half years building single-page
+applications in Angular and TypeScript. Strong on component architecture,
+strict-mode TypeScript, responsive CSS, and test-driven UI work. React
+experience is limited to one framework-evaluation spike and a personal
+project, but the component, state, and tooling concepts are daily practice.
+
+SKILLS
+- Languages: TypeScript (strict mode), JavaScript, HTML, CSS/SCSS
+- Frameworks: Angular 12 through 17, RxJS, NgRx; React (spike and side work)
+- Styling: CSS grid, flexbox, responsive layouts, design tokens
+- Testing: Jasmine, Karma, Angular Testing Library, Playwright, Vitest
+- Tooling: Angular CLI, webpack, esbuild, npm workspaces, Vite (side project)
+
+EXPERIENCE
+
+Frontend Engineer — Quilon Fintech Works, Bengaluru
+June 2023 to February 2026
+- Built the loan servicing dashboard in Angular 16 and strict TypeScript:
+  42 reusable components consumed by three product teams.
+- Modelled client-side state with NgRx and normalised REST responses,
+  cutting duplicated fetches by 70%.
+- Led the 2025 framework evaluation: rebuilt the repayments screen in
+  React with hooks and React Testing Library to compare bundle size,
+  render profiling, and team ramp-up cost.
+- Drove render performance work with the Angular profiler; the largest
+  table view went from 210ms to 45ms per interaction.
+- Wrote component tests to a 75% coverage gate enforced in CI.
+
+UI Developer — Meherbagh Digital Studio, Hyderabad
+August 2020 to May 2023
+- Delivered responsive marketing and booking interfaces in Angular for
+  hospitality clients across mobile and desktop breakpoints.
+- Built a shared SCSS design-token system reused across six client sites.
+- Introduced Jasmine and Karma suites where no UI tests existed and wired
+  them into the build pipeline.
+
+EDUCATION
+Bachelor of Technology, Computer Science — Deccan Valley Institute of Technology, 2019
+
+PROJECTS
+Recipe Box (2025)
+- Personal React application: hooks, context, and Vitest component tests;
+  shipped as a static bundle built with Vite.
+  Tech: React, TypeScript, Vite, CSS grid.
+
+CERTIFICATIONS
+- None

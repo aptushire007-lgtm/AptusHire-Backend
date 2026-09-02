@@ -1,0 +1,52 @@
+{
+  "job": "frontend-react",
+  "bucket": "vocab_mismatch",
+  "candidate": {
+    "name": "Joaquin D'Souza",
+    "email": "joaquin.dsouza@example.com",
+    "phone": "+91-00000-03401",
+    "skills": ["component-based ui library", "jsx", "typed javascript superset", "utility-class styling", "automated component checks", "esm bundler tooling", "accessibility"],
+    "experience": [
+      {
+        "title": "Senior UI Engineer",
+        "company": "Mandovi Fintech Works",
+        "startDate": "2021-03-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "UI Developer",
+        "company": "Konkan Digital Studio",
+        "startDate": "2019-07-01",
+        "endDate": "2021-02-28",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Information Technology",
+        "institution": "Cabo Verde Institute of Technology",
+        "endYear": 2018
+      }
+    ],
+    "projects": [
+      {
+        "title": "Accessible data grid",
+        "description": "Keyboard-navigable virtualised grid component with render-prop APIs and full type definitions.",
+        "techStack": "declarative UI library, typed JavaScript superset"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Joaquin D'Souza",
+    "gradYear": "2018",
+    "university": "Cabo Verde Institute of Technology"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": ["vocabulary_mismatch"],
+    "rationale": "Nearly six years of exactly the required frontend stack — JSX components, strict typing, modern styling, automated component checks, ESM bundler — described entirely without the JD's literal tokens; a keyword engine rejects a plainly qualified engineer."
+  }
+}

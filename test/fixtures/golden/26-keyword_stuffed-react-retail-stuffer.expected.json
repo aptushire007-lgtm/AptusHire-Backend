@@ -1,0 +1,53 @@
+{
+  "job": "frontend-react",
+  "bucket": "keyword_stuffed",
+  "candidate": {
+    "name": "Daniel Okafor",
+    "email": "daniel.okafor@example.com",
+    "phone": "+91-00000-02601",
+    "skills": ["react", "typescript", "css", "testing", "vite", "webpack", "flexbox", "grid", "responsive layouts", "component testing", "state management", "rest apis", "accessibility", "render performance"],
+    "experience": [
+      {
+        "title": "Retail Store Assistant",
+        "company": "Maplecrest Lifestyle Mart",
+        "startDate": "2020-01-01",
+        "endDate": "2021-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Data Entry Operator",
+        "company": "Swiftdesk Outsourcing",
+        "startDate": "2021-06-01",
+        "endDate": "2022-08-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Telecalling Executive",
+        "company": "BlueFern Teleservices",
+        "startDate": "2022-10-01",
+        "endDate": "2024-12-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Arts",
+        "fieldOfStudy": "Sociology",
+        "institution": "Greenhill City College",
+        "endYear": 2017
+      }
+    ],
+    "projects": [],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Daniel Okafor",
+    "gradYear": "2017",
+    "university": "Greenhill City College"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": ["keyword_stuffing"],
+    "rationale": "The competency block parrots the entire React JD vocabulary, but the work history is retail, data entry, and telecalling with no frontend work anywhere."
+  }
+}

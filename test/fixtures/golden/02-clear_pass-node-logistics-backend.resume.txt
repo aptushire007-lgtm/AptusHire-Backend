@@ -1,0 +1,54 @@
+ANANYA KRISHNAN
+Bengaluru, Karnataka | ananya.krishnan@example.com | +91-00000-00201
+
+PROFESSIONAL SUMMARY
+Backend engineer with close to seven years of experience building and running
+production REST APIs on Node.js for logistics and invoicing products. Strong
+Express service design, MongoDB schema and aggregation work, Redis caching,
+and Docker-based delivery. Enjoys turning slow, fragile endpoints into fast,
+observable services.
+
+SKILLS
+- Languages: JavaScript (Node.js), TypeScript, SQL
+- Frameworks: Express, Koa, NestJS
+- Data: MongoDB (schema design, aggregation pipelines), Redis, MySQL
+- Infrastructure: Docker, docker-compose, Nginx, CI pipelines
+- Practices: REST API design, JWT authentication, rate limiting, contract testing
+
+EXPERIENCE
+
+Senior Backend Developer — Bluefin Data Systems, Bengaluru
+June 2021 to May 2025
+- Led the parcel-tracking API team: nine Express services on Node.js serving
+  28k requests per minute across three regions.
+- Remodelled the consignment domain in MongoDB with bucketed time-series
+  collections; p95 tracking queries fell from 610ms to 70ms.
+- Built a Redis-based deduplication layer for courier webhook ingestion,
+  eliminating double-processing of scan events.
+- Moved eleven services to Docker images with multi-stage builds; image sizes
+  dropped 68% and cold deploys became reproducible.
+- Ran quarterly load tests and owned the on-call rota for the tracking domain.
+
+Backend Developer — Orchid Peak Technologies, Bengaluru
+August 2018 to May 2021
+- Built REST APIs in Node.js and Express for a B2B invoicing product used by
+  1,400 client firms.
+- Designed MongoDB aggregation pipelines for monthly settlement reports.
+- Added Redis caching for tax-rate lookups, cutting invoice render time 40%.
+- Wrote integration tests with supertest and wired them into the CI pipeline.
+
+EDUCATION
+Bachelor of Technology, Computer Science — Sundervale Institute of Technology, 2017
+
+PROJECTS
+Ledger Sync Service (2023)
+- Node.js reconciliation service that diffed courier billing feeds against
+  internal ledgers; flagged 2.3 crore INR of overbilling in its first year.
+  Tech: Node.js, Express, MongoDB, Redis, Docker.
+
+queue-retry-kit (2020)
+- Small open-source library for exponential backoff and dead-letter handling
+  on Redis-backed job queues. Tech: Node.js, Redis.
+
+CERTIFICATIONS
+- None

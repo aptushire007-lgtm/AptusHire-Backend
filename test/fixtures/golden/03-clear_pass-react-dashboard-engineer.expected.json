@@ -1,0 +1,57 @@
+{
+  "job": "frontend-react",
+  "bucket": "clear_pass",
+  "candidate": {
+    "name": "Daniel Okafor",
+    "email": "daniel.okafor@example.com",
+    "phone": "+91-00000-00301",
+    "skills": ["react", "typescript", "css", "testing", "vite", "javascript", "webpack", "accessibility"],
+    "experience": [
+      {
+        "title": "Senior Frontend Engineer",
+        "company": "Quartzline Digital",
+        "startDate": "2022-05-01",
+        "endDate": "2025-06-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Frontend Engineer",
+        "company": "Silverbirch Apps",
+        "startDate": "2019-02-01",
+        "endDate": "2022-04-30",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Science",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Westbrook College of Technology",
+        "endYear": 2018
+      }
+    ],
+    "projects": [
+      {
+        "title": "Chartlight",
+        "description": "Open-source React charting library with a headless core and a TypeScript-first API; tree-shakeable, 11kb gzipped.",
+        "techStack": "React, TypeScript, Vite, Vitest"
+      },
+      {
+        "title": "Focus Ledger",
+        "description": "Personal-finance dashboard with offline-first sync and CSS-only theming.",
+        "techStack": "React, TypeScript, Vite, CSS Modules"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Daniel Okafor",
+    "gradYear": "2018",
+    "university": "Westbrook College of Technology"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": [],
+    "rationale": "Six years of professional React and TypeScript with concrete testing, CSS, and Vite migration evidence in the experience bullets — clears every required skill and doubles the three-year minimum."
+  }
+}

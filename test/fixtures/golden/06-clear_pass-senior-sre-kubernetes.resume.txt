@@ -1,0 +1,56 @@
+ELENA MOROZOVA
+Panaji, Goa | elena.morozova@example.com | +91-00000-00601
+
+PROFESSIONAL SUMMARY
+Site reliability engineer with over eight years running production cloud
+infrastructure. Operates Kubernetes on AWS at multi-cluster scale, writes
+Terraform for every piece of infrastructure, and treats Linux fundamentals
+and observability as the job, not extras. Long on-call history with
+Prometheus-based alerting and blameless postmortems.
+
+SKILLS
+- Orchestration: Kubernetes (EKS, cluster upgrades, autoscaling, Helm)
+- Infrastructure as code: Terraform (modules, state strategy), Packer
+- Cloud: AWS (VPC, EC2, EKS, IAM, RDS, CloudWatch)
+- Systems: Linux administration, bash, systemd, kernel tuning basics
+- Observability: Prometheus, Grafana, Alertmanager, Loki
+- Delivery: CI pipelines, blue-green and canary rollouts
+
+EXPERIENCE
+
+Senior Site Reliability Engineer — Ironvale Cloudworks, remote
+May 2021 to June 2025
+- Ran four production Kubernetes clusters on AWS EKS serving 30k requests
+  per second across two regions.
+- Authored the Terraform module library covering VPCs, EKS, RDS, and IAM;
+  95% of infrastructure changes went through code review.
+- Cut AWS spend 27% through rightsizing, spot node groups, and storage
+  lifecycle policies without a single availability regression.
+- Rebuilt alerting on Prometheus and Alertmanager around burn-rate SLOs;
+  pages per on-call week fell from 31 to 6.
+- Led incident response for the platform: 40+ postmortems, mean time to
+  recovery down 60% year over year.
+
+DevOps Engineer — Saffron Grid Technologies, Mumbai
+March 2017 to April 2021
+- Migrated 60 services from hand-managed Linux VMs to Kubernetes.
+- Introduced Terraform to replace console-managed AWS resources; brought
+  the full estate under state management in nine months.
+- Built CI pipelines with container image scanning and staged deploys.
+- Hardened Linux base images and automated patching with Ansible.
+- Stood up the first Prometheus and Grafana stack in the company.
+
+EDUCATION
+Bachelor of Engineering, Computer Science — Volgaberg Technical University, 2015
+
+PROJECTS
+cluster-drill (2022)
+- Open-source chaos-drill runner for Kubernetes that rehearses node loss
+  and DNS failure scenarios. Tech: Go, Kubernetes, Prometheus.
+
+homelab-iac (2019)
+- Fully Terraform-managed home lab with a three-node Kubernetes cluster
+  on refurbished thin clients. Tech: Terraform, Kubernetes, Linux.
+
+CERTIFICATIONS
+- None

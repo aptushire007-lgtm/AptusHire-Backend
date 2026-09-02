@@ -1,0 +1,55 @@
+KAVERI PILLAI
+Chennai, Tamil Nadu | kaveri.pillai@example.com | +91-00000-03301
+
+PROFESSIONAL SUMMARY
+Server-side engineer with six years building JavaScript services on the V8
+runtime for payments and ticketing platforms. Designs HTTP/JSON APIs,
+models data in document-oriented databases, and ships containerised
+services through automated pipelines. Values boring, observable systems
+that page nobody at night.
+
+SKILLS
+- Languages: server-side JavaScript (V8 runtime), TypeScript
+- Services: HTTP/JSON API design, middleware-based web frameworks,
+  webhook processing, background job runners
+- Data: document-oriented databases (Mongo), aggregation pipelines,
+  in-memory key-value caching, write-through cache patterns
+- Delivery: OCI container images, compose-based local stacks, blue-green
+  releases, health-check driven rollouts
+- Practices: JWT authentication, idempotency keys, contract checks,
+  structured logging
+
+EXPERIENCE
+
+Senior Software Engineer — Marina Bay Payments, Chennai
+May 2020 to April 2025
+- Owned the settlement APIs: JavaScript services on the V8 runtime
+  handling 30k requests per minute with p95 under 120ms.
+- Modelled settlement ledgers in a document-oriented database; designed
+  aggregation pipelines powering reconciliation reports.
+- Added an in-memory key-value caching layer with write-through
+  invalidation; database read load fell 60%.
+- Packaged all nine services as OCI container images with health-check
+  driven blue-green deploys; rollback time fell to minutes.
+- Introduced idempotency keys on payment webhooks; duplicate settlement
+  incidents went to zero.
+
+Software Engineer — Coromandel Ticketing Systems, Chennai
+June 2018 to April 2020
+- Built HTTP/JSON APIs in a middleware-based JavaScript web framework
+  for seat inventory and booking holds.
+- Implemented JWT-based authentication shared by three client apps.
+- Wrote contract checks that gated deploys for the booking APIs.
+
+EDUCATION
+Bachelor of Engineering, Computer Science — Pallava Institute of Engineering, 2017
+
+PROJECTS
+Reconciliation engine (2023)
+- Nightly job comparing bank files against the settlement ledger with
+  document-database aggregations; surfaced mismatches within hours
+  instead of days. Tech: server-side JavaScript, document store,
+  key-value cache.
+
+CERTIFICATIONS
+- None

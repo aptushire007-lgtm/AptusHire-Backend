@@ -1,0 +1,53 @@
+INGRID SOLBERG
+Oslo, Norway | ingrid.solberg@example.com | +91-00000-02301
+
+PROFESSIONAL SUMMARY
+Machine learning researcher with six years of post-doctoral research
+experience in self-supervised learning and model evaluation. Deep PyTorch
+and Python; designed and ran large ablation studies and built evaluation
+harnesses adopted by two labs. I have not owned production serving, model
+registries, or SQL feature pipelines: my work has run on academic SLURM
+clusters against curated research datasets.
+
+SKILLS
+- Python: research codebases, packaging, NumPy, typed refactors
+- PyTorch: custom architectures, distributed training, fine-tuning
+- Evaluation: benchmark design, ablations, significance testing, error analysis
+- Experimentation: SLURM job orchestration, reproducible seeds and configs
+- Writing: peer-reviewed publications, technical reports, reviewing service
+
+EXPERIENCE
+
+Senior Research Scientist — Aldervik Centre for Applied AI, Bergen
+September 2023 to May 2026
+- Led a three-person project on robustness of vision-language models;
+  first-author paper published in 2024.
+- Built the centre's evaluation harness: 30 benchmark tasks with pinned
+  seeds, bootstrap confidence intervals, and regression alerts, reused
+  by two other research groups.
+- Fine-tuned transformer models up to 3B parameters with distributed
+  PyTorch across a 64-GPU SLURM allocation.
+- Supervised two doctoral students on experiment design and honest
+  reporting of negative results.
+
+Research Fellow — Skagerrak Institute for Cognitive Systems, Oslo
+February 2020 to August 2023
+- Researched contrastive self-supervised learning; first-author paper
+  published in 2022 plus two co-authored papers.
+- Implemented training pipelines in PyTorch with mixed precision and
+  gradient checkpointing on institute clusters.
+- Ran ablation studies across 400+ configurations with a config-driven
+  experiment runner I wrote and shared lab-wide.
+- Served as a reviewer for two major machine learning venues.
+
+EDUCATION
+Doctor of Philosophy, Machine Learning — Nordfjell University of Science, 2019
+
+PROJECTS
+Eval Sweep Runner (2024)
+- Config-driven experiment runner with resumable sweeps and automatic
+  result tables; used for every study in my latest group.
+  Tech: Python, PyTorch, SLURM.
+
+CERTIFICATIONS
+- None

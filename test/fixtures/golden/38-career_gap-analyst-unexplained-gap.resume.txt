@@ -1,0 +1,46 @@
+VICTOR EZEKWESILI
+Bengaluru, Karnataka | victor.ezekwesili@example.com | +91-00000-03801
+
+PROFESSIONAL SUMMARY
+Data analyst with seven years across e-commerce and healthcare
+analytics. Advanced SQL (window functions, CTEs), Python with pandas
+for wrangling and automation, and Tableau for executive dashboards.
+Comfortable owning a metric end to end: definition, pipeline, dashboard,
+and the meeting where it gets challenged.
+
+SKILLS
+- Querying: SQL — window functions, CTEs, query tuning on warehouses
+- Scripting: Python (pandas, numpy), scheduled report automation
+- BI: Tableau — extracts, LOD calculations, row-level security
+- Modelling: Excel scenario models for finance and operations reviews
+- Practice: metric definitions, experiment readouts, insight memos
+
+EXPERIENCE
+
+Senior Data Analyst — Lalbagh Health Analytics, Bengaluru
+June 2021 to March 2025
+- Owned claims-cost analytics for three hospital groups: SQL marts,
+  pandas pipelines, and Tableau scorecards used in monthly reviews.
+- Automated the regulatory reporting pack with Python; preparation time
+  fell from five days to one.
+- Identified a billing-code drift pattern worth 3.1% of annual claims
+  cost; recovery process adopted across all groups.
+- Mentored two junior analysts on SQL and dashboard design.
+
+Data Analyst — Silkboard Commerce Insights, Bengaluru
+January 2016 to March 2019
+- Built weekly trading dashboards in Tableau for category managers.
+- Wrote SQL against the orders warehouse for promotion deep dives.
+- Maintained Excel margin models used in vendor negotiations.
+- Automated top-seller alerts with Python and pandas.
+
+EDUCATION
+Bachelor of Science, Economics — Cauvery Valley University College, 2015
+
+PROJECTS
+Claims anomaly monitor (2024)
+- Python/pandas job scoring weekly claims batches against historical
+  distributions, with a Tableau front end for the audit team.
+
+CERTIFICATIONS
+- Certified Analytics Practitioner, Southern Analytics Board

@@ -1,0 +1,50 @@
+SUNITA AGARWAL
+Indore, Madhya Pradesh | sunita.agarwal@example.com | +91-00000-02501
+
+PROFESSIONAL SUMMARY
+Dynamic and results-oriented professional with more than five years of
+experience in fast-paced office environments. Eager to apply my passion for
+technology to a senior backend engineering role on a modern logistics
+platform.
+
+CORE COMPETENCIES
+Node.js | Express | MongoDB | Redis | Docker | REST
+REST API design | MongoDB schema design | Aggregation pipelines | Redis caching
+Message queues | WebSocket services | Containerised services | Microservices
+JWT authentication | Backend services | Observability | Scalability
+Load testing | Production deployment | High availability | Agile delivery
+
+EXPERIENCE
+
+Office Assistant — Brightway Business Services, Indore
+February 2019 to June 2020
+- Managed the front desk, courier log, and meeting room calendar for a
+  40-person office.
+- Ordered stationery and pantry supplies and reconciled monthly petty cash.
+
+Office Administrator — Crescent Realty Ventures, Indore
+August 2020 to November 2021
+- Maintained tenant files, agreement copies, and the site-visit register.
+- Scheduled appointments for property managers and handled walk-in queries.
+
+Sales Coordinator — Lotus Trade Fair Solutions, Indore
+January 2022 to June 2023
+- Prepared quotations and followed up with exhibitors over phone and email.
+- Maintained the client contact register and shared weekly enquiry
+  summaries.
+- Arranged stall allotments and printed badges during fair season.
+
+Customer Support Executive — Vermillion Assist Services, Bhopal
+August 2023 to October 2024
+- Answered inbound calls about order status and logged tickets for the
+  field team.
+- Escalated unresolved complaints to supervisors and tracked closure.
+
+EDUCATION
+Bachelor of Commerce — Sarvodaya College of Commerce, Indore, 2014
+
+PROJECTS
+- None
+
+CERTIFICATIONS
+- None

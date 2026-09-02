@@ -1,0 +1,63 @@
+{
+  "job": "data-analyst",
+  "bucket": "clear_pass",
+  "candidate": {
+    "name": "Farhan Qureshi",
+    "email": "farhan.qureshi@example.com",
+    "phone": "+91-00000-00501",
+    "skills": ["sql", "python", "tableau", "excel", "pandas", "numpy", "data quality", "reporting"],
+    "experience": [
+      {
+        "title": "Senior Data Analyst",
+        "company": "Peppercorn Analytics",
+        "startDate": "2022-04-01",
+        "endDate": "2025-05-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Data Analyst",
+        "company": "Windmere Retail Group",
+        "startDate": "2020-07-01",
+        "endDate": "2022-03-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Science",
+        "fieldOfStudy": "Statistics",
+        "institution": "Kalindri College of Science",
+        "endYear": 2019
+      }
+    ],
+    "projects": [
+      {
+        "title": "Footfall Forecast Notebook",
+        "description": "Weekly store-traffic forecasting in Python with pandas and statsmodels; beat the naive baseline by 18% MAPE.",
+        "techStack": "Python, pandas, SQL"
+      },
+      {
+        "title": "Mandi Price Tracker",
+        "description": "Personal project collecting public commodity prices into SQLite with a Tableau workbook on top.",
+        "techStack": "Python, pandas, SQL, Tableau"
+      }
+    ],
+    "certificates": [
+      {
+        "name": "Applied Business Analytics Certificate",
+        "issuer": "Brightpath Skills Academy",
+        "issueDate": "2023"
+      }
+    ]
+  },
+  "probeAnchors": {
+    "name": "Farhan Qureshi",
+    "gradYear": "2019",
+    "university": "Kalindri College of Science"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": [],
+    "rationale": "Nearly five years of analytics work with concrete SQL, Python/pandas, Tableau, and Excel evidence in every role, a statistics degree, and the preferred analytics certification — well past the two-year minimum."
+  }
+}

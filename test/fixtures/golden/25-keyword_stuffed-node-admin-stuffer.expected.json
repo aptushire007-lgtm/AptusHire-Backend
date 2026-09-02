@@ -1,0 +1,60 @@
+{
+  "job": "backend-node",
+  "bucket": "keyword_stuffed",
+  "candidate": {
+    "name": "Sunita Agarwal",
+    "email": "sunita.agarwal@example.com",
+    "phone": "+91-00000-02501",
+    "skills": ["node.js", "express", "mongodb", "redis", "docker", "rest", "microservices", "websocket services", "message queues", "jwt authentication", "aggregation pipelines", "redis caching", "observability", "scalability", "load testing"],
+    "experience": [
+      {
+        "title": "Office Assistant",
+        "company": "Brightway Business Services",
+        "startDate": "2019-02-01",
+        "endDate": "2020-06-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Office Administrator",
+        "company": "Crescent Realty Ventures",
+        "startDate": "2020-08-01",
+        "endDate": "2021-11-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Sales Coordinator",
+        "company": "Lotus Trade Fair Solutions",
+        "startDate": "2022-01-01",
+        "endDate": "2023-06-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Customer Support Executive",
+        "company": "Vermillion Assist Services",
+        "startDate": "2023-08-01",
+        "endDate": "2024-10-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Commerce",
+        "fieldOfStudy": "Commerce",
+        "institution": "Sarvodaya College of Commerce",
+        "endYear": 2014
+      }
+    ],
+    "projects": [],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Sunita Agarwal",
+    "gradYear": "2014",
+    "university": "Sarvodaya College of Commerce"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": ["keyword_stuffing"],
+    "rationale": "Every required Node.js-stack token appears only in a self-declared competency list; the five-plus years of actual experience are administrative and sales roles with no technical evidence behind any claim."
+  }
+}

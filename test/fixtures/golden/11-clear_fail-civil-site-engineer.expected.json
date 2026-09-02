@@ -1,0 +1,52 @@
+{
+  "job": "frontend-react",
+  "bucket": "clear_fail",
+  "candidate": {
+    "name": "Tenzin Bhutia",
+    "email": "tenzin.bhutia@example.com",
+    "phone": "+91-00000-01101",
+    "skills": ["rcc detailing", "concrete quality control", "total station surveying", "bar bending schedules", "site safety", "contractor billing"],
+    "experience": [
+      {
+        "title": "Senior Site Engineer",
+        "company": "Kanchen Infra Projects",
+        "startDate": "2020-01-01",
+        "endDate": "2025-03-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Site Engineer",
+        "company": "Teesta Valley Constructions",
+        "startDate": "2017-06-01",
+        "endDate": "2019-12-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Civil Engineering",
+        "institution": "Himalayan Engineering College",
+        "endYear": 2016
+      }
+    ],
+    "projects": [
+      {
+        "title": "Slab cycle optimisation",
+        "description": "Cut typical floor slab cycle from 12 days to 9 with aluminium formwork sequencing.",
+        "techStack": "aluminium formwork, pour cards"
+      }
+    ],
+    "certificates": [{ "name": "Construction Safety Officer (Entry Level)", "issuer": "National Buildcraft Board", "issueDate": "2020-09-01" }]
+  },
+  "probeAnchors": {
+    "name": "Tenzin Bhutia",
+    "gradYear": "2016",
+    "university": "Himalayan Engineering College"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": [],
+    "rationale": "A strong civil construction engineer with no exposure to UI development or any required frontend skill; a careful screener declines on domain fit."
+  }
+}

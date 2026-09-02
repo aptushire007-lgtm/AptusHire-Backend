@@ -1,0 +1,52 @@
+{
+  "job": "hr-generalist",
+  "bucket": "career_gap",
+  "candidate": {
+    "name": "Serena Mathur",
+    "email": "serena.mathur@example.com",
+    "phone": "+91-00000-03901",
+    "skills": ["recruitment coordination", "onboarding", "hris administration", "payroll inputs", "employee records", "engagement"],
+    "experience": [
+      {
+        "title": "HR Executive",
+        "company": "Amber Fort Digital",
+        "startDate": "2023-03-01",
+        "endDate": "2025-01-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "HR Coordinator",
+        "company": "Hawa Mahal Ventures",
+        "startDate": "2019-06-01",
+        "endDate": "2020-08-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Business Administration",
+        "fieldOfStudy": "Human Resources",
+        "institution": "Aravalli College of Management",
+        "endYear": 2018
+      }
+    ],
+    "projects": [
+      {
+        "title": "Onboarding revamp",
+        "description": "Rebuilt the joining journey into a one-week structured plan with buddy assignments.",
+        "techStack": "onboarding design"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Serena Mathur",
+    "gradYear": "2018",
+    "university": "Aravalli College of Management"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": ["career_gap"],
+    "rationale": "Genuinely arguable: real recruitment/onboarding/HRIS/payroll-input experience argues yes, but total experience sits at the three-year bar only when counting a coordinator stint, the 2.5-year break is unexplained, and compliance exposure is thin — a human should weigh the return trajectory rather than a formula deciding either way."
+  }
+}

@@ -1,0 +1,52 @@
+JOAQUIN D'SOUZA
+Panaji, Goa | joaquin.dsouza@example.com | +91-00000-03401
+
+PROFESSIONAL SUMMARY
+UI engineer with five years building component-driven web applications
+using Meta's declarative UI library and JSX. Writes fully typed code in
+the typed superset of JavaScript, styles with modern layout primitives,
+and keeps interfaces fast, accessible, and covered by automated checks.
+
+SKILLS
+- UI: Meta's component-based UI library, JSX, hooks, context, suspense
+- Types: the typed superset of JavaScript with strict compiler settings
+- Styling: utility-class frameworks, grid and flexbox layouts, design
+  tokens, responsive breakpoints, dark-mode theming
+- Quality: component-level automated checks with a modern rendering
+  harness, snapshot review, accessibility audits
+- Tooling: next-generation ESM dev server and bundler, monorepo task
+  runners, bundle analysis and code-splitting
+
+EXPERIENCE
+
+Senior UI Engineer — Mandovi Fintech Works, Panaji
+March 2021 to April 2025
+- Led the rebuild of the lending dashboard as a component-driven single
+  page application with JSX and hooks; first paint fell from 4.1s to 1.3s.
+- Introduced strict typing across 60k lines with the typed JavaScript
+  superset; production type errors dropped to zero.
+- Built a 40-component design system with tokens, grid/flexbox layout
+  primitives, and dark-mode theming used by three product teams.
+- Raised automated check coverage on components from 20% to 85% with a
+  modern rendering harness; regressions caught pre-merge tripled.
+- Profiled renders and memoised hot paths; interaction latency on the
+  busiest table view fell 70%.
+
+UI Developer — Konkan Digital Studio, Panaji
+July 2019 to February 2021
+- Built marketing and dashboard views with the component-based UI
+  library and utility-class styling.
+- Migrated legacy webpack builds to the next-generation ESM bundler;
+  local rebuilds went from 12s to under a second.
+
+EDUCATION
+Bachelor of Engineering, Information Technology — Cabo Verde Institute of Technology, 2018
+
+PROJECTS
+Accessible data grid (2023)
+- Open-sourced a keyboard-navigable virtualised grid component with JSX
+  render-prop APIs and full type definitions; adopted by two internal
+  products. Tech: declarative UI library, typed JavaScript superset.
+
+CERTIFICATIONS
+- None

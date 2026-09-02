@@ -1,0 +1,6 @@
+# Never bake secrets or local state into the image — .env is injected at runtime
+# via compose `env_file`, and uploads/ is local-disk state that belongs in a volume/S3.
+.env
+node_modules
+uploads
+npm-debug.log

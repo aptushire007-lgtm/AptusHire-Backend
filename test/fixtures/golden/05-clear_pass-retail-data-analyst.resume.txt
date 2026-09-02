@@ -1,0 +1,53 @@
+FARHAN QURESHI
+Jaipur, Rajasthan | farhan.qureshi@example.com | +91-00000-00501
+
+PROFESSIONAL SUMMARY
+Data analyst with close to five years turning retail and operations data into
+decisions. Advanced SQL against warehouse tables, Python with pandas for
+wrangling and automation, Tableau for executive dashboards, and Excel models
+that business teams actually use. Writes findings as one-page memos that
+non-technical stakeholders can act on.
+
+SKILLS
+- Query: SQL (window functions, CTEs, query tuning), warehouse modelling
+- Python: pandas, NumPy, openpyxl, Jupyter, scheduled reporting scripts
+- BI: Tableau (LOD expressions, dashboard actions, published data sources)
+- Spreadsheets: Excel (Power Query, pivot models, scenario analysis)
+- Practices: data quality checks, metric definitions, stakeholder memos
+
+EXPERIENCE
+
+Senior Data Analyst — Peppercorn Analytics, Jaipur
+April 2022 to May 2025
+- Owned the retail client reporting stack: 40 Tableau dashboards fed by SQL
+  models over a 2TB warehouse.
+- Rewrote settlement reconciliation queries with window functions and CTEs;
+  monthly close run time fell from 11 hours to 90 minutes.
+- Automated weekly client reports in Python with pandas and openpyxl,
+  replacing 30 hours of manual Excel work per month.
+- Defined the data quality check suite: 120 assertions on freshness, nulls,
+  and referential drift, alerting before dashboards broke.
+- Walked client leadership through quarterly findings; two pricing changes
+  credited to the analysis added 4% margin.
+
+Data Analyst — Windmere Retail Group, Jaipur
+July 2020 to March 2022
+- Built daily sales and stock-out dashboards in Tableau for 85 stores.
+- Wrote SQL transformations for the merchandising data mart.
+- Cleaned and joined supplier feeds in Python with pandas.
+- Maintained the Excel demand-planning model used by category managers.
+
+EDUCATION
+Bachelor of Science, Statistics — Kalindri College of Science, 2019
+
+PROJECTS
+Footfall Forecast Notebook (2024)
+- Weekly store-traffic forecasting in Python with pandas and statsmodels;
+  beat the naive baseline by 18% MAPE. Tech: Python, pandas, SQL.
+
+Mandi Price Tracker (2021)
+- Personal project collecting public commodity prices into SQLite with a
+  Tableau workbook on top. Tech: Python, pandas, SQL, Tableau.
+
+CERTIFICATIONS
+- Applied Business Analytics Certificate — Brightpath Skills Academy (2023)

@@ -1,0 +1,52 @@
+{
+  "job": "frontend-react",
+  "bucket": "clear_fail",
+  "candidate": {
+    "name": "Graciela Fernandes",
+    "email": "graciela.fernandes@example.com",
+    "phone": "+91-00000-01201",
+    "skills": ["lesson planning", "formative assessment", "lab instruction", "olympiad coaching", "curriculum design", "exam administration"],
+    "experience": [
+      {
+        "title": "Senior Physics Teacher",
+        "company": "St. Anselm's Higher Secondary School",
+        "startDate": "2018-06-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Physics Teacher",
+        "company": "Seaview Public School",
+        "startDate": "2014-06-01",
+        "endDate": "2018-05-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Education",
+        "fieldOfStudy": "Physical Sciences",
+        "institution": "Konkan Teachers College",
+        "endYear": 2013
+      }
+    ],
+    "projects": [
+      {
+        "title": "Low-cost lab kits",
+        "description": "Twelve demonstration kits from locally sourced materials for practical classes.",
+        "techStack": "physics demonstrations"
+      }
+    ],
+    "certificates": [{ "name": "State Teacher Eligibility Certification", "issuer": "Goa Education Board", "issueDate": "2014-01-15" }]
+  },
+  "probeAnchors": {
+    "name": "Graciela Fernandes",
+    "gradYear": "2013",
+    "university": "Konkan Teachers College"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": [],
+    "rationale": "A dedicated physics teacher with no frontend or programming evidence at all; decline is purely on domain fit for a React engineering role."
+  }
+}

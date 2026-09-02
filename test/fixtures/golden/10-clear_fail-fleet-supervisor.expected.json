@@ -1,0 +1,52 @@
+{
+  "job": "backend-node",
+  "bucket": "clear_fail",
+  "candidate": {
+    "name": "Imran Qazi",
+    "email": "imran.qazi@example.com",
+    "phone": "+91-00000-01099",
+    "skills": ["fleet management", "route planning", "preventive maintenance", "cost control", "vendor negotiation", "safety management"],
+    "experience": [
+      {
+        "title": "Fleet Supervisor",
+        "company": "Bluewheel Roadways",
+        "startDate": "2018-08-01",
+        "endDate": "2025-02-28",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Depot Coordinator",
+        "company": "Sarthak Cargo Movers",
+        "startDate": "2016-05-01",
+        "endDate": "2018-07-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Commerce",
+        "fieldOfStudy": "Commerce",
+        "institution": "Malwa Vidyapeeth College",
+        "endYear": 2015
+      }
+    ],
+    "projects": [
+      {
+        "title": "Fuel economy programme",
+        "description": "Corridor-level fuel benchmarking and driver retraining that saved 6.2% diesel in a year.",
+        "techStack": "fuel benchmarking, driver training"
+      }
+    ],
+    "certificates": [{ "name": "Road Transport Safety Management", "issuer": "Central Logistics Institute", "issueDate": "2021-02-01" }]
+  },
+  "probeAnchors": {
+    "name": "Imran Qazi",
+    "gradYear": "2015",
+    "university": "Malwa Vidyapeeth College"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": [],
+    "rationale": "A capable fleet operations professional with no software engineering evidence of any kind; the decline is about domain fit for a senior backend role, not candidate quality."
+  }
+}

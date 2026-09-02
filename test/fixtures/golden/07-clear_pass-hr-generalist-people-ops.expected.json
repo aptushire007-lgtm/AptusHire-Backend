@@ -1,0 +1,58 @@
+{
+  "job": "hr-generalist",
+  "bucket": "clear_pass",
+  "candidate": {
+    "name": "Priyanka Nair",
+    "email": "priyanka.nair@example.com",
+    "phone": "+91-00000-00701",
+    "skills": ["recruitment", "onboarding", "hris", "payroll", "compliance", "policy drafting", "employee engagement", "grievance handling"],
+    "experience": [
+      {
+        "title": "Senior HR Executive",
+        "company": "Tealwood Consumer Brands",
+        "startDate": "2021-06-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "HR Executive",
+        "company": "Lantern Hills Hospitality",
+        "startDate": "2018-08-01",
+        "endDate": "2021-05-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Business Administration",
+        "fieldOfStudy": "Human Resource Management",
+        "institution": "Ashgrove College of Management",
+        "endYear": 2017
+      }
+    ],
+    "projects": [
+      {
+        "title": "Onboarding Playbook Rebuild",
+        "description": "Company-wide onboarding playbook with checklists, manager scripts, and a 90-day review cadence adopted across all sites.",
+        "techStack": ""
+      }
+    ],
+    "certificates": [
+      {
+        "name": "Certified Payroll and Compliance Practitioner",
+        "issuer": "Silverline HR Institute",
+        "issueDate": "2022"
+      }
+    ]
+  },
+  "probeAnchors": {
+    "name": "Priyanka Nair",
+    "gradYear": "2017",
+    "university": "Ashgrove College of Management"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": [],
+    "rationale": "Nearly seven years of hands-on people operations covering recruitment coordination, structured onboarding, HRIS administration, payroll inputs, and Indian labour compliance with measurable outcomes — well beyond the three-year minimum with a matching HR degree."
+  }
+}

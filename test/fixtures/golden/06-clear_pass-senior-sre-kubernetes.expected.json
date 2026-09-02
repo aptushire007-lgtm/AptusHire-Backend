@@ -1,0 +1,57 @@
+{
+  "job": "devops-sre",
+  "bucket": "clear_pass",
+  "candidate": {
+    "name": "Elena Morozova",
+    "email": "elena.morozova@example.com",
+    "phone": "+91-00000-00601",
+    "skills": ["kubernetes", "terraform", "aws", "linux", "prometheus", "grafana", "ci/cd", "helm"],
+    "experience": [
+      {
+        "title": "Senior Site Reliability Engineer",
+        "company": "Ironvale Cloudworks",
+        "startDate": "2021-05-01",
+        "endDate": "2025-06-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "DevOps Engineer",
+        "company": "Saffron Grid Technologies",
+        "startDate": "2017-03-01",
+        "endDate": "2021-04-30",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Volgaberg Technical University",
+        "endYear": 2015
+      }
+    ],
+    "projects": [
+      {
+        "title": "cluster-drill",
+        "description": "Open-source chaos-drill runner for Kubernetes that rehearses node loss and DNS failure scenarios.",
+        "techStack": "Go, Kubernetes, Prometheus"
+      },
+      {
+        "title": "homelab-iac",
+        "description": "Fully Terraform-managed home lab with a three-node Kubernetes cluster on refurbished thin clients.",
+        "techStack": "Terraform, Kubernetes, Linux"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Elena Morozova",
+    "gradYear": "2015",
+    "university": "Volgaberg Technical University"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": [],
+    "rationale": "Over eight years of DevOps/SRE work with production Kubernetes on AWS, Terraform-managed infrastructure, Linux hardening, and Prometheus alerting all evidenced concretely — clears the five-year minimum and every required skill."
+  }
+}

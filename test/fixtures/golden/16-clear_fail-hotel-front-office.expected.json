@@ -1,0 +1,52 @@
+{
+  "job": "ml-engineer",
+  "bucket": "clear_fail",
+  "candidate": {
+    "name": "Roshni Thapa",
+    "email": "roshni.thapa@example.com",
+    "phone": "+91-00000-01601",
+    "skills": ["front desk operations", "reservations", "night audit", "guest relations", "folio management", "group coordination"],
+    "experience": [
+      {
+        "title": "Front Office Executive",
+        "company": "Rhododendron Ridge Hotel",
+        "startDate": "2020-05-01",
+        "endDate": "2025-03-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Front Desk Associate",
+        "company": "Orchid Trail Boutique Stay",
+        "startDate": "2018-04-01",
+        "endDate": "2020-04-30",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Hotel Management",
+        "fieldOfStudy": "Hospitality Management",
+        "institution": "Eastern Hills Hospitality College",
+        "endYear": 2017
+      }
+    ],
+    "projects": [
+      {
+        "title": "Group arrivals playbook",
+        "description": "Property playbook for conference group check-ins with staggered arrival slots.",
+        "techStack": "front office procedures"
+      }
+    ],
+    "certificates": [{ "name": "Front Office Operations Professional", "issuer": "Himalayan Hospitality Institute", "issueDate": "2019-05-01" }]
+  },
+  "probeAnchors": {
+    "name": "Roshni Thapa",
+    "gradYear": "2017",
+    "university": "Eastern Hills Hospitality College"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": [],
+    "rationale": "A competent hospitality professional with no programming, modelling, or data pipeline evidence; a careful screener declines the ML engineer role on complete domain mismatch."
+  }
+}

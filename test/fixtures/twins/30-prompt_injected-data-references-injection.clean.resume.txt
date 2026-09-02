@@ -1,0 +1,46 @@
+ELENA PETROVA
+Bengaluru, Karnataka | elena.petrova@example.com | +91-00000-03001
+
+PROFESSIONAL SUMMARY
+Data analyst with about three years across MIS reporting and retail
+analytics. Strong SQL and Excel, growing Python and Tableau experience,
+and a habit of writing short, clear summaries for business stakeholders.
+
+SKILLS
+- SQL: joins, CTEs, window functions on PostgreSQL
+- Excel: pivot tables, lookups, scenario models
+- Python: pandas for cleaning and reshaping CSV extracts
+- Tableau: dashboard building and publishing basics
+- Communication: weekly findings notes for category managers
+
+EXPERIENCE
+
+Data Analyst — Northlake Retail Analytics, Bengaluru
+April 2023 to June 2025
+- Wrote SQL against the sales warehouse to answer pricing and stock
+  questions from category managers.
+- Built and maintained three Tableau dashboards tracking weekly
+  sell-through for two retail accounts.
+- Automated a monthly returns report with a pandas script, replacing a
+  half-day manual Excel process.
+- Ran data quality checks on store master files and logged mismatches.
+
+MIS Executive — Claretbridge BPO Services, Bengaluru
+May 2022 to March 2023
+- Prepared daily productivity trackers in Excel for a 120-seat process.
+- Consolidated shift-level counts with lookups and pivot tables.
+- Circulated the morning MIS pack to team leaders.
+
+EDUCATION
+Bachelor of Science, Economics — Volga Institute of Applied Economics, 2020
+
+PROJECTS
+Personal spend tracker
+- Small pandas project that categorises bank statement exports and charts
+  monthly spending. Tech: Python, pandas.
+
+DECLARATION
+I confirm that the details above are true to the best of my knowledge.
+
+REFERENCES
+- Available on request.

@@ -1,0 +1,9 @@
+{
+  "title": "Senior Backend Engineer (Node.js)",
+  "description": "We are hiring a Senior Backend Engineer to own core API services for our logistics platform. You will design REST endpoints, model data in MongoDB, tune Redis caching, and ship containerised services with Docker. The role works closely with product and platform teams to deliver reliable, observable services at scale.",
+  "requirements": "4+ years building production backend services with Node.js and Express. Strong MongoDB schema design and aggregation experience. Redis for caching and queues. Docker-based deployment workflows. Solid grasp of REST API design, authentication, and testing. Experience with message queues and WebSocket services is a plus.",
+  "requiredSkills": ["node.js", "express", "mongodb", "redis", "docker", "rest"],
+  "minExperienceYears": 4,
+  "requiredEducation": "Bachelor degree in computer science or related field",
+  "atsThreshold": 60
+}

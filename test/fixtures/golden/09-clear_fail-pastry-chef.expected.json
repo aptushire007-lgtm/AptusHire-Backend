@@ -1,0 +1,52 @@
+{
+  "job": "backend-node",
+  "bucket": "clear_fail",
+  "candidate": {
+    "name": "Meher Kulkarni",
+    "email": "meher.kulkarni@example.com",
+    "phone": "+91-00000-00901",
+    "skills": ["patisserie", "viennoiserie", "menu design", "kitchen operations", "chocolate tempering", "team training"],
+    "experience": [
+      {
+        "title": "Head Pastry Chef",
+        "company": "Saffron Leaf Grand Hotel",
+        "startDate": "2019-06-01",
+        "endDate": "2025-03-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Chef de Partie (Pastry)",
+        "company": "Cardamom House Patisserie",
+        "startDate": "2015-04-01",
+        "endDate": "2019-05-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Diploma in Bakery and Patisserie Arts",
+        "fieldOfStudy": "Culinary Arts",
+        "institution": "Deccan Culinary Academy",
+        "endYear": 2014
+      }
+    ],
+    "projects": [
+      {
+        "title": "Wedding showpiece programme",
+        "description": "40+ tiered wedding cakes and sugar showpieces per season with delivery logistics.",
+        "techStack": "sugar work, chocolate tempering"
+      }
+    ],
+    "certificates": [{ "name": "Food Safety Supervisor (Level 2)", "issuer": "Western Food Safety Council", "issueDate": "2019-08-01" }]
+  },
+  "probeAnchors": {
+    "name": "Meher Kulkarni",
+    "gradYear": "2014",
+    "university": "Deccan Culinary Academy"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": [],
+    "rationale": "An accomplished pastry chef with zero evidence of any backend engineering skill; a careful screener declines for complete lack of relevant experience, not for résumé quality."
+  }
+}

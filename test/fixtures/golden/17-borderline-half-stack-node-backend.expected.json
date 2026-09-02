@@ -1,0 +1,52 @@
+{
+  "job": "backend-node",
+  "bucket": "borderline",
+  "candidate": {
+    "name": "Priyanka Wagholikar",
+    "email": "priyanka.wagholikar@example.com",
+    "phone": "+91-00000-01701",
+    "skills": ["node.js", "express", "rest", "mysql", "rabbitmq", "sql", "javascript"],
+    "experience": [
+      {
+        "title": "Senior Backend Developer",
+        "company": "Amaltas Logistics Software",
+        "startDate": "2022-11-01",
+        "endDate": "2026-03-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Backend Developer",
+        "company": "Sahyadri Retail Technologies",
+        "startDate": "2019-07-01",
+        "endDate": "2022-10-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Information Technology",
+        "institution": "Godavari College of Engineering",
+        "endYear": 2018
+      }
+    ],
+    "projects": [
+      {
+        "title": "Warehouse Slotting API",
+        "description": "Express service that assigns rack slots from bin dimensions and picking frequency; 400k slotting decisions in its first quarter.",
+        "techStack": "Node.js, Express, MySQL, RabbitMQ"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Priyanka Wagholikar",
+    "gradYear": "2018",
+    "university": "Godavari College of Engineering"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": [],
+    "rationale": "Nearly seven years of genuine Node.js, Express, and REST depth clears the experience bar and argues pass, but MongoDB, Redis, and Docker — half the required stack — are completely absent from a MySQL-and-VM delivery history, which argues fail; weighing core-runtime strength against a wholly missing operational half needs a human."
+  }
+}

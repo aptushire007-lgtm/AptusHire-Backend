@@ -1,0 +1,53 @@
+{
+  "job": "devops-sre",
+  "bucket": "keyword_stuffed",
+  "candidate": {
+    "name": "Meenakshi Iyer",
+    "email": "meenakshi.iyer@example.com",
+    "phone": "+91-00000-02701",
+    "skills": ["kubernetes", "terraform", "aws", "linux", "prometheus", "grafana", "docker", "ci/cd", "helm", "ansible", "incident response", "observability", "monitoring", "alerting", "shell scripting"],
+    "experience": [
+      {
+        "title": "Front Office Executive",
+        "company": "Palmgrove Suites Hotel",
+        "startDate": "2017-04-01",
+        "endDate": "2019-08-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Billing Clerk",
+        "company": "Silverline Freight Depot",
+        "startDate": "2019-10-01",
+        "endDate": "2022-01-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Office Supervisor",
+        "company": "Regal Orchid Banquets",
+        "startDate": "2022-03-01",
+        "endDate": "2025-02-28",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Business Administration",
+        "fieldOfStudy": "Business Administration",
+        "institution": "Coastal Crest College of Management",
+        "endYear": 2013
+      }
+    ],
+    "projects": [],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Meenakshi Iyer",
+    "gradYear": "2013",
+    "university": "Coastal Crest College of Management"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": ["keyword_stuffing"],
+    "rationale": "Seven-plus years of hotel and freight office roles provide zero evidence for the parroted Kubernetes/Terraform/AWS competency list, so the claims are unsupported buzzwords."
+  }
+}

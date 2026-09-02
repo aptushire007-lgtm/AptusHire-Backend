@@ -1,0 +1,52 @@
+{
+  "job": "backend-node",
+  "bucket": "borderline",
+  "candidate": {
+    "name": "Tomasz Zielinski",
+    "email": "tomasz.zielinski@example.com",
+    "phone": "+91-00000-01801",
+    "skills": ["php", "laravel", "node.js", "express", "redis", "docker", "rest", "mysql", "postgresql", "typescript"],
+    "experience": [
+      {
+        "title": "Senior Backend Developer",
+        "company": "Kranich Digital Systems",
+        "startDate": "2022-01-01",
+        "endDate": "2026-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "PHP Backend Developer",
+        "company": "Bursztyn Software House",
+        "startDate": "2018-02-01",
+        "endDate": "2021-12-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Odra Technical University",
+        "endYear": 2017
+      }
+    ],
+    "projects": [
+      {
+        "title": "Ledger Diff Tool",
+        "description": "Node.js command-line tool that reconciles invoice exports between two billing systems; first substantial Express and TypeScript codebase.",
+        "techStack": "Node.js, Express, TypeScript, PostgreSQL"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Tomasz Zielinski",
+    "gradYear": "2017",
+    "university": "Odra Technical University"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": [],
+    "rationale": "Eight years of backend fundamentals with deep Redis, Docker, and REST experience plus a test-parity Laravel-to-Express migration argue the PHP-to-Node transition is nearly complete, but only eight months of production Node.js/Express and no MongoDB at all argue he is not yet the senior Node hire the role specifies — a human must judge the transfer."
+  }
+}

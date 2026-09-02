@@ -1,0 +1,455 @@
+{
+  "engine": "legacy",
+  "createdAt": "2026-07-25T05:09:51.621Z",
+  "report": {
+    "engine": "legacy",
+    "cases": 40,
+    "repeats": 5,
+    "classification": {
+      "total": 40,
+      "accuracy": 0.45,
+      "confusion": {
+        "pass": {
+          "pass": 10,
+          "fail": 4,
+          "review": 0
+        },
+        "fail": {
+          "pass": 4,
+          "fail": 8,
+          "review": 0
+        },
+        "review": {
+          "pass": 12,
+          "fail": 2,
+          "review": 0
+        }
+      },
+      "perClass": {
+        "pass": {
+          "precision": 0.38461538461538464,
+          "recall": 0.7142857142857143,
+          "f1": 0.5,
+          "support": 14
+        },
+        "fail": {
+          "precision": 0.5714285714285714,
+          "recall": 0.6666666666666666,
+          "f1": 0.6153846153846153,
+          "support": 12
+        },
+        "review": {
+          "precision": null,
+          "recall": 0,
+          "f1": null,
+          "support": 14
+        }
+      }
+    },
+    "reviewRouting": {
+      "routingRate": 0,
+      "borderlineCapture": 0,
+      "expectedReviewCount": 14
+    },
+    "spanValidity": {
+      "total": 0,
+      "valid": 0,
+      "rate": null
+    },
+    "reproducibility": {
+      "cases": 40,
+      "runsPerCase": 5,
+      "identical": true,
+      "maxRange": 0,
+      "meanVariance": 0,
+      "unstableCases": []
+    },
+    "agreement": {
+      "unanimousRate": 1,
+      "meanPairwiseAgreement": 1
+    },
+    "latency": {
+      "count": 200,
+      "p50": 0.12120000000000175,
+      "p95": 0.2372000000000014,
+      "mean": 0.15412900000000007
+    },
+    "cost": {
+      "llmCalls": 0,
+      "totalPromptTokens": 0,
+      "totalCompletionTokens": 0,
+      "totalCostCents": 0,
+      "costPerCandidateCents": 0
+    },
+    "perCase": [
+      {
+        "id": "01-clear_pass-senior-node-backend",
+        "bucket": "clear_pass",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 85
+      },
+      {
+        "id": "02-clear_pass-node-logistics-backend",
+        "bucket": "clear_pass",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 85
+      },
+      {
+        "id": "03-clear_pass-react-dashboard-engineer",
+        "bucket": "clear_pass",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 83
+      },
+      {
+        "id": "04-clear_pass-react-design-system-lead",
+        "bucket": "clear_pass",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 77
+      },
+      {
+        "id": "05-clear_pass-retail-data-analyst",
+        "bucket": "clear_pass",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 82
+      },
+      {
+        "id": "06-clear_pass-senior-sre-kubernetes",
+        "bucket": "clear_pass",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 84
+      },
+      {
+        "id": "07-clear_pass-hr-generalist-people-ops",
+        "bucket": "clear_pass",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 80
+      },
+      {
+        "id": "08-clear_pass-ml-engineer-pytorch",
+        "bucket": "clear_pass",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 86
+      },
+      {
+        "id": "09-clear_fail-pastry-chef",
+        "bucket": "clear_fail",
+        "expected": "fail",
+        "actual": "fail",
+        "score": 33
+      },
+      {
+        "id": "10-clear_fail-fleet-supervisor",
+        "bucket": "clear_fail",
+        "expected": "fail",
+        "actual": "fail",
+        "score": 35
+      },
+      {
+        "id": "11-clear_fail-civil-site-engineer",
+        "bucket": "clear_fail",
+        "expected": "fail",
+        "actual": "fail",
+        "score": 34
+      },
+      {
+        "id": "12-clear_fail-science-teacher",
+        "bucket": "clear_fail",
+        "expected": "fail",
+        "actual": "fail",
+        "score": 34
+      },
+      {
+        "id": "13-clear_fail-retail-store-manager",
+        "bucket": "clear_fail",
+        "expected": "fail",
+        "actual": "fail",
+        "score": 34
+      },
+      {
+        "id": "14-clear_fail-graphic-designer",
+        "bucket": "clear_fail",
+        "expected": "fail",
+        "actual": "fail",
+        "score": 33
+      },
+      {
+        "id": "15-clear_fail-mechanical-fitter",
+        "bucket": "clear_fail",
+        "expected": "fail",
+        "actual": "fail",
+        "score": 31
+      },
+      {
+        "id": "16-clear_fail-hotel-front-office",
+        "bucket": "clear_fail",
+        "expected": "fail",
+        "actual": "fail",
+        "score": 31
+      },
+      {
+        "id": "17-borderline-half-stack-node-backend",
+        "bucket": "borderline",
+        "expected": "review",
+        "actual": "fail",
+        "score": 58
+      },
+      {
+        "id": "18-borderline-php-to-node-backend",
+        "bucket": "borderline",
+        "expected": "review",
+        "actual": "pass",
+        "score": 71
+      },
+      {
+        "id": "19-borderline-angular-to-react",
+        "bucket": "borderline",
+        "expected": "review",
+        "actual": "pass",
+        "score": 83
+      },
+      {
+        "id": "20-borderline-short-tenure-data-analyst",
+        "bucket": "borderline",
+        "expected": "review",
+        "actual": "pass",
+        "score": 64
+      },
+      {
+        "id": "21-borderline-onprem-to-cloud-sre",
+        "bucket": "borderline",
+        "expected": "review",
+        "actual": "pass",
+        "score": 81
+      },
+      {
+        "id": "22-borderline-agency-to-inhouse-hr",
+        "bucket": "borderline",
+        "expected": "review",
+        "actual": "pass",
+        "score": 74
+      },
+      {
+        "id": "23-borderline-academic-to-industry-ml",
+        "bucket": "borderline",
+        "expected": "review",
+        "actual": "pass",
+        "score": 70
+      },
+      {
+        "id": "24-borderline-data-engineer-to-ml",
+        "bucket": "borderline",
+        "expected": "review",
+        "actual": "fail",
+        "score": 52
+      },
+      {
+        "id": "25-keyword_stuffed-node-admin-stuffer",
+        "bucket": "keyword_stuffed",
+        "expected": "fail",
+        "actual": "pass",
+        "score": 72
+      },
+      {
+        "id": "26-keyword_stuffed-react-retail-stuffer",
+        "bucket": "keyword_stuffed",
+        "expected": "fail",
+        "actual": "pass",
+        "score": 74
+      },
+      {
+        "id": "27-keyword_stuffed-devops-clerk-stuffer",
+        "bucket": "keyword_stuffed",
+        "expected": "fail",
+        "actual": "pass",
+        "score": 71
+      },
+      {
+        "id": "28-keyword_stuffed-ml-backoffice-stuffer",
+        "bucket": "keyword_stuffed",
+        "expected": "fail",
+        "actual": "pass",
+        "score": 69
+      },
+      {
+        "id": "29-prompt_injected-node-summary-injection",
+        "bucket": "prompt_injected",
+        "expected": "review",
+        "actual": "pass",
+        "score": 67
+      },
+      {
+        "id": "30-prompt_injected-data-references-injection",
+        "bucket": "prompt_injected",
+        "expected": "review",
+        "actual": "pass",
+        "score": 67
+      },
+      {
+        "id": "31-prompt_injected-react-skills-injection",
+        "bucket": "prompt_injected",
+        "expected": "review",
+        "actual": "pass",
+        "score": 69
+      },
+      {
+        "id": "32-prompt_injected-ml-system-block-injection",
+        "bucket": "prompt_injected",
+        "expected": "review",
+        "actual": "pass",
+        "score": 71
+      },
+      {
+        "id": "33-vocab_mismatch-v8-services-engineer",
+        "bucket": "vocab_mismatch",
+        "expected": "pass",
+        "actual": "fail",
+        "score": 41
+      },
+      {
+        "id": "34-vocab_mismatch-jsx-ui-engineer",
+        "bucket": "vocab_mismatch",
+        "expected": "pass",
+        "actual": "fail",
+        "score": 38
+      },
+      {
+        "id": "35-vocab_mismatch-k8s-platform-engineer",
+        "bucket": "vocab_mismatch",
+        "expected": "pass",
+        "actual": "fail",
+        "score": 43
+      },
+      {
+        "id": "36-vocab_mismatch-warehouse-analyst",
+        "bucket": "vocab_mismatch",
+        "expected": "pass",
+        "actual": "fail",
+        "score": 40
+      },
+      {
+        "id": "37-career_gap-node-return-after-care",
+        "bucket": "career_gap",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 82
+      },
+      {
+        "id": "38-career_gap-analyst-unexplained-gap",
+        "bucket": "career_gap",
+        "expected": "pass",
+        "actual": "pass",
+        "score": 80
+      },
+      {
+        "id": "39-career_gap-hr-coordinator-returner",
+        "bucket": "career_gap",
+        "expected": "review",
+        "actual": "pass",
+        "score": 80
+      },
+      {
+        "id": "40-career_gap-teacher-to-ml",
+        "bucket": "career_gap",
+        "expected": "review",
+        "actual": "pass",
+        "score": 77
+      }
+    ],
+    "bias": {
+      "generatedBy": "backend/test/eval/bias.js",
+      "tolerance": 0,
+      "enforce": [
+        "name",
+        "pronoun",
+        "gradYear"
+      ],
+      "report": [
+        "university"
+      ],
+      "cases": 40,
+      "dimensions": {
+        "name": {
+          "variantsScored": 320,
+          "applicableCases": 40,
+          "notApplicableCases": 0,
+          "maxAbsDelta": 0,
+          "offenders": [],
+          "enforced": true,
+          "pass": true
+        },
+        "pronoun": {
+          "variantsScored": 8,
+          "applicableCases": 8,
+          "notApplicableCases": 32,
+          "maxAbsDelta": 0,
+          "offenders": [],
+          "enforced": true,
+          "pass": true
+        },
+        "gradYear": {
+          "variantsScored": 120,
+          "applicableCases": 40,
+          "notApplicableCases": 0,
+          "maxAbsDelta": 0,
+          "offenders": [],
+          "enforced": true,
+          "pass": true
+        },
+        "university": {
+          "variantsScored": 160,
+          "applicableCases": 40,
+          "notApplicableCases": 0,
+          "maxAbsDelta": 1,
+          "offenders": [
+            {
+              "caseId": "15-clear_fail-mechanical-fitter",
+              "variant": "university:Indian Institute of Technology Bombay",
+              "baseScore": 31,
+              "variantScore": 32,
+              "delta": 1
+            },
+            {
+              "caseId": "23-borderline-academic-to-industry-ml",
+              "variant": "university:Stanford University",
+              "baseScore": 70,
+              "variantScore": 69,
+              "delta": -1
+            },
+            {
+              "caseId": "23-borderline-academic-to-industry-ml",
+              "variant": "university:Indian Institute of Technology Bombay",
+              "baseScore": 70,
+              "variantScore": 69,
+              "delta": -1
+            },
+            {
+              "caseId": "23-borderline-academic-to-industry-ml",
+              "variant": "university:Savitribai Phule Pune University",
+              "baseScore": 70,
+              "variantScore": 69,
+              "delta": -1
+            },
+            {
+              "caseId": "23-borderline-academic-to-industry-ml",
+              "variant": "university:Government Polytechnic College Beed",
+              "baseScore": 70,
+              "variantScore": 69,
+              "delta": -1
+            }
+          ],
+          "enforced": false,
+          "pass": true
+        }
+      },
+      "pass": true
+    }
+  }
+}

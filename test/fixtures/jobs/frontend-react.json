@@ -1,0 +1,9 @@
+{
+  "title": "Frontend Engineer (React)",
+  "description": "Join our product engineering team to build customer-facing dashboards in React. You will develop reusable components, manage state, integrate REST APIs, and keep the UI fast and accessible. We care about clean TypeScript, meaningful tests, and polished interaction design.",
+  "requirements": "3+ years of professional React development. Strong TypeScript. Modern CSS (flexbox, grid) and responsive layouts. Component testing with a modern testing library. Experience with build tooling such as Vite or webpack, and comfort profiling render performance.",
+  "requiredSkills": ["react", "typescript", "css", "testing", "vite"],
+  "minExperienceYears": 3,
+  "requiredEducation": "Bachelor degree in computer science or related field",
+  "atsThreshold": 60
+}

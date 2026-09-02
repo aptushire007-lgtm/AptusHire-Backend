@@ -1,0 +1,54 @@
+NANDINI BORGOHAIN
+Guwahati, Assam | nandini.borgohain@example.com | +91-00000-03701
+
+PROFESSIONAL SUMMARY
+Backend engineer with about eight years of production Node.js experience
+across fintech and e-commerce. Took a planned career break from mid-2020
+to late 2022 to care for a family member; returned to full-time
+engineering in 2022 and shipped a major payments migration within six
+months of rejoining. Strong on Express service design, MongoDB
+modelling, Redis caching, and Docker-based delivery.
+
+SKILLS
+- Languages: JavaScript (Node.js), TypeScript
+- Frameworks: Express, NestJS, Socket.io
+- Data: MongoDB (schema design, aggregation), Redis, PostgreSQL
+- Delivery: Docker, docker-compose, CI pipelines, blue-green deploys
+- Practices: REST API design, JWT authentication, integration tests
+
+EXPERIENCE
+
+Senior Backend Engineer — Brahmaputra Paylabs, Guwahati
+September 2022 to April 2025
+- Rejoined industry after a planned family-care break and led the
+  migration of the card-settlement service to Node.js and Express;
+  cutover completed with zero settlement misses.
+- Redesigned MongoDB schemas for the merchant ledger; p95 statement
+  queries fell from 900ms to 140ms.
+- Added Redis-based idempotency and rate limiting to payout APIs.
+- Containerised the settlement stack with Docker for one-command local
+  environments and reproducible deploys.
+
+Backend Engineer — Kaziranga Commerce Tech, Guwahati
+June 2015 to July 2020
+- Built and ran REST APIs in Node.js and Express for a marketplace
+  serving 200k monthly buyers.
+- Modelled catalogue and order data in MongoDB; wrote aggregation
+  pipelines for seller dashboards.
+- Introduced Redis caching for category pages; origin load fell 55%.
+- Owned JWT-based auth and role checks shared across three services.
+
+CAREER BREAK
+August 2020 to August 2022 — full-time family caregiving. Kept current
+with side reading and small open-source contributions.
+
+EDUCATION
+Bachelor of Technology, Computer Science — Purbanchal Institute of Technology, 2014
+
+PROJECTS
+Settlement replay tool (2024)
+- Node.js CLI that replays failed settlement batches against a staging
+  ledger with diff reports. Tech: Node.js, MongoDB, Redis, Docker.
+
+CERTIFICATIONS
+- None

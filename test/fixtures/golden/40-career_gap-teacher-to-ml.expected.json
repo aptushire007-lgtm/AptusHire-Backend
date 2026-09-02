@@ -1,0 +1,52 @@
+{
+  "job": "ml-engineer",
+  "bucket": "career_gap",
+  "candidate": {
+    "name": "Aditya Vellore",
+    "email": "aditya.vellore@example.com",
+    "phone": "+91-00000-04001",
+    "skills": ["python", "pytorch", "sql", "mlops", "evaluation", "transformers", "mathematics"],
+    "experience": [
+      {
+        "title": "Machine Learning Engineer",
+        "company": "Chamundi Document AI",
+        "startDate": "2022-09-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Mathematics Teacher",
+        "company": "Mysuru Central School",
+        "startDate": "2016-06-01",
+        "endDate": "2021-03-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Science",
+        "fieldOfStudy": "Mathematics",
+        "institution": "Sharavathi Science College",
+        "endYear": 2015
+      }
+    ],
+    "projects": [
+      {
+        "title": "Regional-language receipt parser",
+        "description": "Fine-tuned a compact transformer for receipt field extraction in two regional languages with a published error analysis.",
+        "techStack": "Python, PyTorch, SQL"
+      }
+    ],
+    "certificates": [{ "name": "Applied Machine Learning Programme", "issuer": "Deccan AI Academy", "issueDate": "2022-07-01" }]
+  },
+  "probeAnchors": {
+    "name": "Aditya Vellore",
+    "gradYear": "2015",
+    "university": "Sharavathi Science College"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": ["career_gap"],
+    "rationale": "Genuinely arguable non-linear path: real PyTorch/Python/SQL work with unusually mature evaluation discipline argues yes, but only 2.6 of the required 4 years are in-domain and the strongest foundations come from teaching rather than industry — a human should judge the trajectory, not a years formula."
+  }
+}

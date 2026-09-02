@@ -1,0 +1,52 @@
+{
+  "job": "hr-generalist",
+  "bucket": "clear_fail",
+  "candidate": {
+    "name": "Deepak Rathod",
+    "email": "deepak.rathod@example.com",
+    "phone": "+91-00000-01501",
+    "skills": ["shaft alignment", "pump assembly", "gearbox overhaul", "preventive maintenance", "precision measurement", "rigging"],
+    "experience": [
+      {
+        "title": "Senior Fitter",
+        "company": "Saurashtra Heavy Engineering Works",
+        "startDate": "2018-03-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Fitter",
+        "company": "Kathiawar Pumps and Castings",
+        "startDate": "2014-01-01",
+        "endDate": "2018-02-28",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Industrial Training Certificate",
+        "fieldOfStudy": "Fitter Trade",
+        "institution": "Gondal Technical Institute",
+        "endYear": 2012
+      }
+    ],
+    "projects": [
+      {
+        "title": "Alignment kit standardisation",
+        "description": "Standard shaft-alignment toolkit and one-page procedure adopted by all maintenance crews.",
+        "techStack": "dial gauges, laser alignment"
+      }
+    ],
+    "certificates": [{ "name": "Overhead Crane Rigging (Signaller)", "issuer": "Gujarat Industrial Safety Council", "issueDate": "2019-11-01" }]
+  },
+  "probeAnchors": {
+    "name": "Deepak Rathod",
+    "gradYear": "2012",
+    "university": "Gondal Technical Institute"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": [],
+    "rationale": "A skilled mechanical fitter with no people-operations, HRIS, or payroll exposure whatsoever; a careful screener declines the HR generalist role on domain fit."
+  }
+}

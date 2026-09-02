@@ -1,0 +1,57 @@
+KENJI WATANABE
+Bengaluru, Karnataka | kenji.watanabe@example.com | +91-00000-00801
+
+PROFESSIONAL SUMMARY
+Machine learning engineer with six years taking models from notebook to
+production. Builds training pipelines in Python and PyTorch, owns the MLOps
+tooling around them — experiment tracking, model registry, reproducible
+training — and treats evaluation design as the core of the job. Comfortable
+writing the SQL feature pipelines that feed the models.
+
+SKILLS
+- Languages: Python (typing, packaging, async), SQL, some Go
+- Modelling: PyTorch (training loops, fine-tuning, quantisation), scikit-learn
+- MLOps: experiment tracking, model registries, feature stores, reproducible
+  training with pinned environments and data versioning
+- Evaluation: offline evaluation suites, drift monitoring, A/B analysis
+- Serving: FastAPI model services, batch scoring, GPU inference tuning
+
+EXPERIENCE
+
+Senior Machine Learning Engineer — Quillon Intelligence, Bengaluru
+July 2021 to May 2025
+- Owned the demand-forecasting model family: PyTorch temporal models served
+  behind FastAPI, scoring 3M SKUs nightly.
+- Built the training pipeline in Python with full reproducibility: pinned
+  environments, dataset snapshots, and one-command retraining.
+- Stood up the MLOps platform: experiment tracking, a model registry with
+  stage gates, and automated rollback on metric regression.
+- Designed the offline evaluation harness — sliced metrics, backtesting
+  windows, and drift monitors that caught two silent data breaks.
+- Wrote SQL feature pipelines over the warehouse for 40+ model features,
+  co-owned with the analytics team.
+
+Machine Learning Engineer — Vermeil Data Systems, Bengaluru
+March 2019 to June 2021
+- Fine-tuned PyTorch text classifiers for support-ticket routing; cut
+  misrouted tickets by 44%.
+- Productionised research notebooks into Python packages with tests and CI.
+- Built the evaluation set labelling workflow with double annotation and
+  adjudication, lifting label agreement to 0.91 kappa.
+- Maintained SQL transformations feeding the training data mart.
+
+EDUCATION
+Master of Technology, Machine Learning — Shirakawa Institute of Advanced Computing, 2018
+Bachelor of Engineering, Computer Science — Coastal Ridge Engineering College, 2016
+
+PROJECTS
+torch-eval-cards (2023)
+- Open-source library generating evaluation report cards for PyTorch models:
+  sliced metrics, calibration plots, drift summaries. Tech: Python, PyTorch.
+
+Warehouse Feature Linter (2020)
+- Static checks for SQL feature pipelines: leakage detection, time-travel
+  validation, and null-rate budgets. Tech: Python, SQL.
+
+CERTIFICATIONS
+- None

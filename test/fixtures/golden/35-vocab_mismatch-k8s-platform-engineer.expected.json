@@ -1,0 +1,52 @@
+{
+  "job": "devops-sre",
+  "bucket": "vocab_mismatch",
+  "candidate": {
+    "name": "Bhavani Chettiar",
+    "email": "bhavani.chettiar@example.com",
+    "phone": "+91-00000-03501",
+    "skills": ["k8s operations", "hcl infrastructure as code", "hyperscaler cloud architecture", "unix-like systems", "time-series monitoring", "incident command", "shell scripting"],
+    "experience": [
+      {
+        "title": "Senior Platform Engineer",
+        "company": "Kongu Cloudworks",
+        "startDate": "2020-01-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Systems Engineer",
+        "company": "Noyyal Hosting Services",
+        "startDate": "2016-06-01",
+        "endDate": "2019-12-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Nilgiri College of Engineering",
+        "endYear": 2015
+      }
+    ],
+    "projects": [
+      {
+        "title": "Cluster upgrade automation",
+        "description": "Rolling-upgrade pipeline for orchestration clusters with canary workloads and rollback.",
+        "techStack": "k8s, HCL, shell"
+      }
+    ],
+    "certificates": [{ "name": "Hyperscaler Solutions Architect (Associate)", "issuer": "cloud vendor programme", "issueDate": "2021-08-01" }]
+  },
+  "probeAnchors": {
+    "name": "Bhavani Chettiar",
+    "gradYear": "2015",
+    "university": "Nilgiri College of Engineering"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": ["vocabulary_mismatch"],
+    "rationale": "Nearly nine years of exactly the required platform stack — k8s cluster operations, HCL infrastructure-as-code, hyperscaler cloud, Unix-like administration, time-series monitoring — described without any of the JD's literal tokens; keyword matching rejects an obviously qualified SRE."
+  }
+}

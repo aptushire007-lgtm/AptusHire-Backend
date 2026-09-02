@@ -1,0 +1,52 @@
+{
+  "job": "ml-engineer",
+  "bucket": "borderline",
+  "candidate": {
+    "name": "Ingrid Solberg",
+    "email": "ingrid.solberg@example.com",
+    "phone": "+91-00000-02301",
+    "skills": ["python", "pytorch", "evaluation", "slurm", "numpy"],
+    "experience": [
+      {
+        "title": "Senior Research Scientist",
+        "company": "Aldervik Centre for Applied AI",
+        "startDate": "2023-09-01",
+        "endDate": "2026-05-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Research Fellow",
+        "company": "Skagerrak Institute for Cognitive Systems",
+        "startDate": "2020-02-01",
+        "endDate": "2023-08-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Doctor of Philosophy",
+        "fieldOfStudy": "Machine Learning",
+        "institution": "Nordfjell University of Science",
+        "endYear": 2019
+      }
+    ],
+    "projects": [
+      {
+        "title": "Eval Sweep Runner",
+        "description": "Config-driven experiment runner with resumable sweeps and automatic result tables; used for every study in her latest group.",
+        "techStack": "Python, PyTorch, SLURM"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Ingrid Solberg",
+    "gradYear": "2019",
+    "university": "Nordfjell University of Science"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": [],
+    "rationale": "A PhD plus six years of deep PyTorch, Python, and evaluation-methodology research exceed the modelling half of the role and the education bar, but production MLOps and SQL feature work are entirely absent, so whether research rigour transfers to notebook-to-production ownership is a call for a human, not a score."
+  }
+}

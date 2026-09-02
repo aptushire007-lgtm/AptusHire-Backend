@@ -1,0 +1,52 @@
+{
+  "job": "devops-sre",
+  "bucket": "clear_fail",
+  "candidate": {
+    "name": "Anoushka Bagchi",
+    "email": "anoushka.bagchi@example.com",
+    "phone": "+91-00000-01401",
+    "skills": ["brand identity", "packaging design", "editorial layout", "prepress", "art direction", "photo retouching"],
+    "experience": [
+      {
+        "title": "Senior Graphic Designer",
+        "company": "Copperleaf Design Studio",
+        "startDate": "2019-02-01",
+        "endDate": "2025-03-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Graphic Designer",
+        "company": "Meridian Adworks",
+        "startDate": "2016-08-01",
+        "endDate": "2019-01-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Fine Arts",
+        "fieldOfStudy": "Applied Art",
+        "institution": "Bengal School of Visual Arts",
+        "endYear": 2015
+      }
+    ],
+    "projects": [
+      {
+        "title": "Heritage tea rebrand",
+        "description": "Complete identity system and packaging for twelve variants of a 40-year-old tea brand.",
+        "techStack": "identity design, packaging, print production"
+      }
+    ],
+    "certificates": [{ "name": "Advanced Print Production", "issuer": "Eastern Design Institute", "issueDate": "2018-03-01" }]
+  },
+  "probeAnchors": {
+    "name": "Anoushka Bagchi",
+    "gradYear": "2015",
+    "university": "Bengal School of Visual Arts"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": [],
+    "rationale": "An accomplished print/brand designer with zero infrastructure, cloud, or operations evidence; a careful screener declines a senior SRE role on domain fit."
+  }
+}

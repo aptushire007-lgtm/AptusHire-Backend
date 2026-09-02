@@ -1,0 +1,53 @@
+BHAVANI CHETTIAR
+Coimbatore, Tamil Nadu | bhavani.chettiar@example.com | +91-00000-03501
+
+PROFESSIONAL SUMMARY
+Platform engineer with seven years running production container
+orchestration clusters (k8s) on the largest public cloud provider.
+Everything as code: cluster add-ons, VPC networks, and IAM policies are
+declared in HCL and reviewed like software. Deep on-call experience with
+time-series monitoring, alert routing, and incident command.
+
+SKILLS
+- Orchestration: k8s cluster operations, helm-style chart templating,
+  autoscaling policies, pod disruption budgets, ingress controllers
+- Infrastructure as code: HCL modules, drift detection, policy-as-code
+  guardrails, reviewable plan/apply pipelines
+- Cloud: the leading hyperscaler — VPC design, managed load balancers,
+  object storage lifecycles, IAM least-privilege policies, spot fleets
+- Systems: Unix-like server administration, shell scripting, systemd
+  units, kernel parameter tuning, packet capture debugging
+- Observability: open-source time-series metrics stack, alert manager
+  routing trees, log aggregation with structured queries, SLO burn alerts
+
+EXPERIENCE
+
+Senior Platform Engineer — Kongu Cloudworks, Coimbatore
+January 2020 to April 2025
+- Operated five production orchestration clusters (largest: 900 pods)
+  with 99.95% control-plane availability over three years.
+- Moved all infrastructure to HCL modules with automated plan review;
+  unreviewed console changes went to zero.
+- Designed the hyperscaler landing zone: VPC segmentation, centralised
+  IAM, and budget alerts across eleven accounts.
+- Built the metrics stack: time-series collection, recording rules, and
+  SLO burn-rate alerts; mean time to detect fell from 20 to 4 minutes.
+- Ran incident command for 30+ SEV-2s; wrote the postmortem playbook.
+
+Systems Engineer — Noyyal Hosting Services, Coimbatore
+June 2016 to December 2019
+- Administered 200+ Unix-like servers: patching, hardening, monitoring.
+- Automated provisioning with shell scripts and configuration management.
+- Carried the pager in a three-person rotation for hosting customers.
+
+EDUCATION
+Bachelor of Engineering, Computer Science — Nilgiri College of Engineering, 2015
+
+PROJECTS
+Cluster upgrade automation (2023)
+- Wrote a rolling-upgrade pipeline for orchestration clusters with
+  automated canary workloads and rollback; upgrades went from weekend
+  events to routine weekday tasks. Tech: k8s, HCL, shell.
+
+CERTIFICATIONS
+- Hyperscaler Solutions Architect (Associate), cloud vendor programme

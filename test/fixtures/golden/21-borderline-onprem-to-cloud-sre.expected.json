@@ -1,0 +1,59 @@
+{
+  "job": "devops-sre",
+  "bucket": "borderline",
+  "candidate": {
+    "name": "Declan O'Rourke",
+    "email": "declan.orourke@example.com",
+    "phone": "+91-00000-02101",
+    "skills": ["linux", "ansible", "prometheus", "grafana", "kubernetes", "terraform", "aws", "docker", "bash"],
+    "experience": [
+      {
+        "title": "Senior Infrastructure Engineer",
+        "company": "Carraig Data Services",
+        "startDate": "2022-07-01",
+        "endDate": "2026-05-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Systems Administrator",
+        "company": "Slievemore Hosting",
+        "startDate": "2018-09-01",
+        "endDate": "2022-06-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "IT Support Engineer",
+        "company": "Ballindine Managed Services",
+        "startDate": "2017-01-01",
+        "endDate": "2018-08-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Science",
+        "fieldOfStudy": "Computer Systems",
+        "institution": "Lough Errin Institute of Technology",
+        "endYear": 2016
+      }
+    ],
+    "projects": [
+      {
+        "title": "Homelab GitOps Cluster",
+        "description": "Three-node k3s cluster rebuilt nightly from Terraform and Flux manifests; used to rehearse the production EKS build-out.",
+        "techStack": "Kubernetes, Terraform, Prometheus, Grafana"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Declan O'Rourke",
+    "gradYear": "2016",
+    "university": "Lough Errin Institute of Technology"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": [],
+    "rationale": "Nine years of production operations with deep Linux, Ansible, and a self-led Prometheus migration clear the five-year seniority bar and argue pass, but Kubernetes, Terraform, and AWS — the core of this role — total roughly fourteen months, so he is simultaneously over-qualified in operations and under-qualified in the required cloud stack; only a human can weigh that trade."
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "_comment": "Recorded Naukri RMS client-API exchanges (Phase 15.5). The driver is developed and tested against these; going live with real tenant credentials is configuration, not code. Keyed as `METHOD path`.",
+  "POST /v1/jobs": {
+    "status": 201,
+    "body": {
+      "jobId": "NKR-88231",
+      "status": "LIVE",
+      "listingUrl": "https://www.naukri.example/job-listings/NKR-88231"
+    }
+  },
+  "PUT /v1/jobs/NKR-88231": {
+    "status": 200,
+    "body": {
+      "jobId": "NKR-88231",
+      "status": "LIVE",
+      "listingUrl": "https://www.naukri.example/job-listings/NKR-88231"
+    }
+  },
+  "GET /v1/jobs/NKR-88231": {
+    "status": 200,
+    "body": {
+      "jobId": "NKR-88231",
+      "status": "LIVE",
+      "listingUrl": "https://www.naukri.example/job-listings/NKR-88231"
+    }
+  },
+  "DELETE /v1/jobs/NKR-88231": {
+    "status": 200,
+    "body": { "jobId": "NKR-88231", "status": "REMOVED" }
+  },
+  "GET /v1/account": {
+    "status": 200,
+    "body": { "clientId": "acme-rms", "plan": "resdex-plus", "active": true }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "job": "data-analyst",
+  "bucket": "vocab_mismatch",
+  "candidate": {
+    "name": "Tashi Dolma",
+    "email": "tashi.dolma@example.com",
+    "phone": "+91-00000-03601",
+    "skills": ["warehouse querying", "window functions", "data scripting", "dataframe pipelines", "bi dashboards", "spreadsheet modelling", "stakeholder communication"],
+    "experience": [
+      {
+        "title": "Senior Business Analyst",
+        "company": "Khardung Retail Analytics",
+        "startDate": "2021-08-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Data Analyst",
+        "company": "Zanskar Logistics Insights",
+        "startDate": "2019-06-01",
+        "endDate": "2021-07-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Science",
+        "fieldOfStudy": "Statistics",
+        "institution": "Trans-Himalayan University College",
+        "endYear": 2018
+      }
+    ],
+    "projects": [
+      {
+        "title": "Stockout early-warning report",
+        "description": "Scripted dataframe pipeline flagging stores trending toward stockouts five days ahead.",
+        "techStack": "data scripting language, warehouse queries, BI dashboard"
+      }
+    ],
+    "certificates": [{ "name": "Business Intelligence Practitioner", "issuer": "Northern Analytics Guild", "issueDate": "2022-04-01" }]
+  },
+  "probeAnchors": {
+    "name": "Tashi Dolma",
+    "gradYear": "2018",
+    "university": "Trans-Himalayan University College"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": ["vocabulary_mismatch"],
+    "rationale": "Almost six years of the exact analyst toolkit — window-function warehouse queries, scripted dataframe automation, BI dashboards, spreadsheet models, clear stakeholder communication — expressed without the JD's literal tool names; a keyword engine misses a clearly qualified analyst."
+  }
+}

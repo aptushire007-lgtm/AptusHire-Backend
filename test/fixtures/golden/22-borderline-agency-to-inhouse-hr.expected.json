@@ -1,0 +1,59 @@
+{
+  "job": "hr-generalist",
+  "bucket": "borderline",
+  "candidate": {
+    "name": "Anjali Venkataraman",
+    "email": "anjali.venkataraman@example.com",
+    "phone": "+91-00000-02201",
+    "skills": ["recruitment", "onboarding", "hris", "ats", "excel", "scheduling"],
+    "experience": [
+      {
+        "title": "Senior Talent Coordinator",
+        "company": "Mahanadi Staffing Solutions",
+        "startDate": "2024-04-01",
+        "endDate": "2026-06-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Recruitment Coordinator",
+        "company": "Kaveri Talent Partners",
+        "startDate": "2021-10-01",
+        "endDate": "2024-03-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "HR Operations Intern",
+        "company": "Kaveri Talent Partners",
+        "startDate": "2021-02-01",
+        "endDate": "2021-08-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Business Administration",
+        "fieldOfStudy": "Human Resources",
+        "institution": "Ponnani School of Management",
+        "endYear": 2020
+      }
+    ],
+    "projects": [
+      {
+        "title": "Joiner Tracker Workbook",
+        "description": "Excel workbook with Power Query that consolidated joiner status across clients; adopted by two account teams.",
+        "techStack": "Excel, Power Query"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Anjali Venkataraman",
+    "gradYear": "2020",
+    "university": "Ponnani School of Management"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": [],
+    "rationale": "Five years of high-volume recruitment coordination and onboarding logistics cover the hiring half of the generalist role with real depth and argue pass, but HRIS administration, payroll inputs, and compliance were client-owned functions she only touched from the agency side, so agency-to-in-house transferability is genuinely arguable in both directions."
+  }
+}

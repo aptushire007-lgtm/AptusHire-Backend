@@ -1,0 +1,52 @@
+{
+  "job": "backend-node",
+  "bucket": "vocab_mismatch",
+  "candidate": {
+    "name": "Kaveri Pillai",
+    "email": "kaveri.pillai@example.com",
+    "phone": "+91-00000-03301",
+    "skills": ["server-side javascript", "v8 runtime", "http/json apis", "document-oriented databases", "in-memory caching", "oci containers", "typescript"],
+    "experience": [
+      {
+        "title": "Senior Software Engineer",
+        "company": "Marina Bay Payments",
+        "startDate": "2020-05-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Software Engineer",
+        "company": "Coromandel Ticketing Systems",
+        "startDate": "2018-06-01",
+        "endDate": "2020-04-30",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Pallava Institute of Engineering",
+        "endYear": 2017
+      }
+    ],
+    "projects": [
+      {
+        "title": "Reconciliation engine",
+        "description": "Nightly job comparing bank files against the settlement ledger using document-database aggregations.",
+        "techStack": "server-side JavaScript, document store, key-value cache"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Kaveri Pillai",
+    "gradYear": "2017",
+    "university": "Pallava Institute of Engineering"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": ["vocabulary_mismatch"],
+    "rationale": "Seven years of exactly the required stack described in substance (V8-runtime JavaScript services, document database, in-memory cache, OCI containers, HTTP APIs) without ever using the JD's literal tokens — a keyword engine fails this genuinely qualified candidate; a human does not."
+  }
+}

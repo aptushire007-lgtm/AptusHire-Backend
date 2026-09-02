@@ -1,0 +1,52 @@
+{
+  "job": "data-analyst",
+  "bucket": "career_gap",
+  "candidate": {
+    "name": "Victor Ezekwesili",
+    "email": "victor.ezekwesili@example.com",
+    "phone": "+91-00000-03801",
+    "skills": ["sql", "python", "pandas", "tableau", "excel", "numpy", "metric design"],
+    "experience": [
+      {
+        "title": "Senior Data Analyst",
+        "company": "Lalbagh Health Analytics",
+        "startDate": "2021-06-01",
+        "endDate": "2025-03-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Data Analyst",
+        "company": "Silkboard Commerce Insights",
+        "startDate": "2016-01-01",
+        "endDate": "2019-03-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Science",
+        "fieldOfStudy": "Economics",
+        "institution": "Cauvery Valley University College",
+        "endYear": 2015
+      }
+    ],
+    "projects": [
+      {
+        "title": "Claims anomaly monitor",
+        "description": "Python/pandas job scoring weekly claims batches against historical distributions with a Tableau front end.",
+        "techStack": "Python, pandas, Tableau, SQL"
+      }
+    ],
+    "certificates": [{ "name": "Certified Analytics Practitioner", "issuer": "Southern Analytics Board", "issueDate": "2018-09-01" }]
+  },
+  "probeAnchors": {
+    "name": "Victor Ezekwesili",
+    "gradYear": "2015",
+    "university": "Cauvery Valley University College"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": ["career_gap"],
+    "rationale": "Seven years of directly relevant analytics work covering every required tool, with a certification the JD prefers; the unexplained 2019–2021 gap is visible in the dates and worth a question at interview, but the evidence comfortably clears the bar for a 2-year-experience role."
+  }
+}

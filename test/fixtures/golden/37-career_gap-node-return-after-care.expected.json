@@ -1,0 +1,52 @@
+{
+  "job": "backend-node",
+  "bucket": "career_gap",
+  "candidate": {
+    "name": "Nandini Borgohain",
+    "email": "nandini.borgohain@example.com",
+    "phone": "+91-00000-03701",
+    "skills": ["node.js", "express", "mongodb", "redis", "docker", "rest", "typescript", "javascript"],
+    "experience": [
+      {
+        "title": "Senior Backend Engineer",
+        "company": "Brahmaputra Paylabs",
+        "startDate": "2022-09-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Backend Engineer",
+        "company": "Kaziranga Commerce Tech",
+        "startDate": "2015-06-01",
+        "endDate": "2020-07-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Technology",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Purbanchal Institute of Technology",
+        "endYear": 2014
+      }
+    ],
+    "projects": [
+      {
+        "title": "Settlement replay tool",
+        "description": "Node.js CLI that replays failed settlement batches against a staging ledger with diff reports.",
+        "techStack": "Node.js, MongoDB, Redis, Docker"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Nandini Borgohain",
+    "gradYear": "2014",
+    "university": "Purbanchal Institute of Technology"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": ["career_gap"],
+    "rationale": "A documented two-year family-care break sits between two strong Node.js stints totalling nearly eight years covering every required skill, with a major migration shipped within months of returning — the gap is visible, explained, and does not outweigh the evidence."
+  }
+}

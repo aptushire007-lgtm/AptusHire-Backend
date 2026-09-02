@@ -1,0 +1,58 @@
+ANJALI VENKATARAMAN
+Chennai, Tamil Nadu | anjali.venkataraman@example.com | +91-00000-02201
+
+PROFESSIONAL SUMMARY
+Talent coordinator with five years in staffing agencies, running
+high-volume recruitment operations for enterprise clients: sourcing
+coordination, interview logistics, offer follow-through, and first-day
+onboarding handovers. Looking to move in-house. My payroll, HRIS
+administration, and statutory compliance exposure comes from working
+alongside client teams rather than owning those functions myself.
+
+SKILLS
+- Recruitment: pipeline coordination, scheduling at scale, offer management
+- Onboarding: document collection, background-check follow-up, day-one handover
+- Systems: agency ATS administration, client HRIS data entry (view and update)
+- Reporting: weekly funnel dashboards in Excel, SLA tracking, Power Query
+- Communication: candidate experience scripts, hiring-manager updates
+
+EXPERIENCE
+
+Senior Talent Coordinator — Mahanadi Staffing Solutions, Chennai
+April 2024 to June 2026
+- Coordinated 60 to 80 open requisitions monthly across three
+  enterprise accounts, from intake call to offer release.
+- Ran onboarding paperwork for roughly 45 joiners a month: offer
+  letters, document verification, and background-check escalation.
+- Entered joiner records into two client HRIS platforms and reconciled
+  monthly headcount reports against them.
+- Cut interview no-shows by a third with a reminder and reschedule
+  workflow adopted agency-wide.
+
+Recruitment Coordinator — Kaveri Talent Partners, Chennai
+October 2021 to March 2024
+- Scheduled 200+ interviews a month across IT services clients and
+  tracked feedback turnaround against SLA.
+- Maintained the agency ATS: requisition setup, stage hygiene, and
+  weekly funnel reporting to account managers.
+- Drafted contract-staff documentation packs that were checked and
+  signed off by each client's compliance team.
+- Handled candidate queries end to end from application through
+  joining day.
+
+HR Operations Intern — Kaveri Talent Partners, Chennai
+February 2021 to August 2021
+- Supported document collection and induction scheduling for
+  contract-staff deployments.
+
+EDUCATION
+Bachelor of Business Administration, Human Resources — Ponnani School of Management, 2020
+
+PROJECTS
+Joiner Tracker Workbook (2023)
+- Excel workbook with Power Query that consolidated joiner status
+  across clients; adopted by two account teams.
+  Tech: Excel, Power Query.
+
+CERTIFICATIONS
+- None

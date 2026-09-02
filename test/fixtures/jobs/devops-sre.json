@@ -1,0 +1,9 @@
+{
+  "title": "DevOps / Site Reliability Engineer",
+  "description": "We are hiring a DevOps engineer to own our cloud infrastructure and delivery pipelines. You will run Kubernetes clusters on AWS, write Terraform for everything, harden CI/CD pipelines, and drive incident response and observability across services.",
+  "requirements": "5+ years in DevOps or SRE roles. Production Kubernetes operations. Terraform-managed AWS infrastructure. Building and maintaining CI/CD pipelines. Strong Linux administration and shell scripting. On-call experience with monitoring and alerting stacks such as Prometheus and Grafana.",
+  "requiredSkills": ["kubernetes", "terraform", "aws", "linux", "prometheus"],
+  "minExperienceYears": 5,
+  "requiredEducation": "Bachelor degree in computer science or related field",
+  "atsThreshold": 60
+}

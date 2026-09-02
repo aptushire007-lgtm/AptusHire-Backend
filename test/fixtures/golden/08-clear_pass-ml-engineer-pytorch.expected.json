@@ -1,0 +1,63 @@
+{
+  "job": "ml-engineer",
+  "bucket": "clear_pass",
+  "candidate": {
+    "name": "Kenji Watanabe",
+    "email": "kenji.watanabe@example.com",
+    "phone": "+91-00000-00801",
+    "skills": ["python", "pytorch", "mlops", "sql", "evaluation", "drift monitoring", "fastapi", "scikit-learn"],
+    "experience": [
+      {
+        "title": "Senior Machine Learning Engineer",
+        "company": "Quillon Intelligence",
+        "startDate": "2021-07-01",
+        "endDate": "2025-05-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Machine Learning Engineer",
+        "company": "Vermeil Data Systems",
+        "startDate": "2019-03-01",
+        "endDate": "2021-06-30",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Master of Technology",
+        "fieldOfStudy": "Machine Learning",
+        "institution": "Shirakawa Institute of Advanced Computing",
+        "endYear": 2018
+      },
+      {
+        "degree": "Bachelor of Engineering",
+        "fieldOfStudy": "Computer Science",
+        "institution": "Coastal Ridge Engineering College",
+        "endYear": 2016
+      }
+    ],
+    "projects": [
+      {
+        "title": "torch-eval-cards",
+        "description": "Open-source library generating evaluation report cards for PyTorch models: sliced metrics, calibration plots, drift summaries.",
+        "techStack": "Python, PyTorch"
+      },
+      {
+        "title": "Warehouse Feature Linter",
+        "description": "Static checks for SQL feature pipelines: leakage detection, time-travel validation, and null-rate budgets.",
+        "techStack": "Python, SQL"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Kenji Watanabe",
+    "gradYear": "2018",
+    "university": "Shirakawa Institute of Advanced Computing"
+  },
+  "expected": {
+    "outcome": "pass",
+    "flags": [],
+    "rationale": "Six years of production ML engineering with concrete PyTorch, MLOps, evaluation, and SQL feature-pipeline evidence plus the preferred Master degree in machine learning — clearly above the four-year minimum."
+  }
+}

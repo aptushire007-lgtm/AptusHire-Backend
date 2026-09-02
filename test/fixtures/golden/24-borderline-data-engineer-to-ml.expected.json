@@ -1,0 +1,57 @@
+{
+  "job": "ml-engineer",
+  "bucket": "borderline",
+  "candidate": {
+    "name": "Siyona Reddy",
+    "email": "siyona.reddy@example.com",
+    "phone": "+91-00000-02401",
+    "skills": ["python", "sql", "airflow", "kafka", "feature stores", "model deployment", "data quality"],
+    "experience": [
+      {
+        "title": "Data Engineer",
+        "company": "Deccan Insights Labs",
+        "startDate": "2021-11-01",
+        "endDate": "2025-04-30",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Junior Data Engineer",
+        "company": "Charminar Analytics",
+        "startDate": "2020-10-01",
+        "endDate": "2021-10-31",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Technology",
+        "fieldOfStudy": "Information Technology",
+        "institution": "Godavari Institute of Technology",
+        "endYear": 2019
+      }
+    ],
+    "projects": [
+      {
+        "title": "Feature store rollout",
+        "description": "Migrated churn and pricing features to a shared feature store with point-in-time joins.",
+        "techStack": "Python, feature store, Airflow"
+      },
+      {
+        "title": "Streaming quality monitor",
+        "description": "Kafka consumer that flags schema drift and null spikes before the warehouse.",
+        "techStack": "Python, Kafka"
+      }
+    ],
+    "certificates": []
+  },
+  "probeAnchors": {
+    "name": "Siyona Reddy",
+    "gradYear": "2019",
+    "university": "Godavari Institute of Technology"
+  },
+  "expected": {
+    "outcome": "review",
+    "flags": [],
+    "rationale": "Genuinely arguable: excellent Python/SQL and real MLOps-adjacent platform work argue yes, but there is no hands-on model development (no PyTorch, no training or metric ownership), a Bachelor where a Master is preferred, and 4.5 years total but under 4 in the qualifying stack — a human must weigh platform depth against missing modelling experience."
+  }
+}

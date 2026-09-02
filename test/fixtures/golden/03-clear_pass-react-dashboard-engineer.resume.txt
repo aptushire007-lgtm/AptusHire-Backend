@@ -1,0 +1,55 @@
+DANIEL OKAFOR
+Hyderabad, Telangana | daniel.okafor@example.com | +91-00000-00301
+
+PROFESSIONAL SUMMARY
+Frontend engineer with six years of professional React experience building
+customer-facing dashboards and design systems. Strong TypeScript throughout,
+modern CSS layout work, and a testing habit: every component ships with
+React Testing Library coverage. Migrated two large codebases to Vite and
+treats render profiling as part of the definition of done.
+
+SKILLS
+- Core: React, TypeScript, JavaScript, HTML
+- Styling: modern CSS (flexbox, grid, container queries), CSS Modules
+- Testing: React Testing Library, Vitest, Jest, Playwright component tests
+- Tooling: Vite, webpack, ESLint, Storybook
+- Practices: accessibility (WCAG AA), REST API integration, code review
+
+EXPERIENCE
+
+Senior Frontend Engineer — Quartzline Digital, Hyderabad
+May 2022 to June 2025
+- Owned the analytics dashboard surface in React and TypeScript: 60+ screens
+  used daily by 9,000 customer accounts.
+- Led the webpack-to-Vite migration for a 210k-line codebase; local dev
+  server start fell from 74 seconds to 3 and CI build time halved.
+- Built a virtualised data-grid component in React with keyboard navigation
+  and ARIA support; adopted by four product teams.
+- Cut dashboard interaction latency by profiling renders with the React
+  Profiler and memoising hot paths; input delay dropped 55%.
+- Raised component test coverage from 31% to 82% with React Testing Library
+  and Vitest; gated merges on the suite.
+
+Frontend Engineer — Silverbirch Apps, Hyderabad
+February 2019 to April 2022
+- Built booking and payments flows in React and TypeScript against REST APIs.
+- Implemented responsive layouts with CSS grid and flexbox for mobile-first
+  screens serving 70% of traffic.
+- Introduced Jest component testing to a previously untested codebase.
+- Maintained the shared form library: validation, masking, error states.
+
+EDUCATION
+Bachelor of Science, Computer Science — Westbrook College of Technology, 2018
+
+PROJECTS
+Chartlight (2024)
+- Open-source React charting library with a headless core and a
+  TypeScript-first API; tree-shakeable, 11kb gzipped.
+  Tech: React, TypeScript, Vite, Vitest.
+
+Focus Ledger (2021)
+- Personal-finance dashboard with offline-first sync and CSS-only theming.
+  Tech: React, TypeScript, Vite, CSS Modules.
+
+CERTIFICATIONS
+- None

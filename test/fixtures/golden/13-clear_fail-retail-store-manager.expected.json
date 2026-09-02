@@ -1,0 +1,52 @@
+{
+  "job": "data-analyst",
+  "bucket": "clear_fail",
+  "candidate": {
+    "name": "Baako Mensah",
+    "email": "baako.mensah@example.com",
+    "phone": "+91-00000-01301",
+    "skills": ["store operations", "inventory control", "shift rostering", "shrinkage control", "vendor management", "customer service"],
+    "experience": [
+      {
+        "title": "Store Manager",
+        "company": "Harbourfront Hypermart",
+        "startDate": "2019-07-01",
+        "endDate": "2025-03-31",
+        "currentlyWorking": false
+      },
+      {
+        "title": "Assistant Store Manager",
+        "company": "Cascade Retail Stores",
+        "startDate": "2016-04-01",
+        "endDate": "2019-06-30",
+        "currentlyWorking": false
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Business Administration",
+        "fieldOfStudy": "Business Administration",
+        "institution": "Malabar Commerce College",
+        "endYear": 2015
+      }
+    ],
+    "projects": [
+      {
+        "title": "Night replenishment redesign",
+        "description": "Shifted heavy replenishment to a night crew; queue complaints fell by half.",
+        "techStack": "rostering, replenishment planning"
+      }
+    ],
+    "certificates": [{ "name": "Retail Operations Professional", "issuer": "All-India Retail Academy", "issueDate": "2018-06-01" }]
+  },
+  "probeAnchors": {
+    "name": "Baako Mensah",
+    "gradYear": "2015",
+    "university": "Malabar Commerce College"
+  },
+  "expected": {
+    "outcome": "fail",
+    "flags": [],
+    "rationale": "An effective store manager whose résumé shows no querying, scripting, or BI tooling evidence; a careful screener declines for absence of any analytics capability."
+  }
+}

@@ -1,0 +1,57 @@
+DECLAN O'ROURKE
+Dublin, Ireland | declan.orourke@example.com | +91-00000-02101
+
+PROFESSIONAL SUMMARY
+Infrastructure engineer with nine years running production systems, most
+of that on physical and VMware estates: Linux hardening, Ansible
+automation, on-call incident response, and a Nagios-to-Prometheus
+monitoring migration led end to end. Cloud-native tooling is recent: I
+have run Kubernetes on AWS with Terraform since our 2025 migration,
+roughly fourteen months of hands-on production time.
+
+SKILLS
+- Operating systems: Debian and RHEL administration, kernel tuning, Bash
+- Automation: Ansible (120+ roles), Terraform (fourteen months), Packer
+- Platforms: VMware vSphere, AWS (EC2, VPC, EKS, S3) since the migration
+- Containers: Docker, Kubernetes on EKS (fourteen months production)
+- Observability: Prometheus, Grafana, Alertmanager, Loki, legacy Nagios
+
+EXPERIENCE
+
+Senior Infrastructure Engineer — Carraig Data Services, Dublin
+July 2022 to May 2026
+- Ran a 200-VM VMware estate for a payments processor: patching
+  windows, capacity planning, and quarterly failover tests.
+- Led the Nagios-to-Prometheus migration: 800 checks rewritten as
+  exporters and alert rules, paging noise cut by 60%.
+- From the 2025 cloud programme onward, built the company's first AWS
+  landing zone in Terraform and stood up two EKS clusters that now run
+  eleven services.
+- Wrote the on-call runbook set and halved mean time to acknowledge
+  across the team's paging rotations.
+
+Systems Administrator — Slievemore Hosting, Galway
+September 2018 to June 2022
+- Administered 300 customer Linux servers: provisioning, backups, and
+  kernel and package patching on a fixed weekly cycle.
+- Automated recurring fixes with Ansible playbooks, retiring a 40-page
+  manual procedure document.
+- Carried a one-in-four on-call rota and wrote post-incident reviews
+  for every customer-facing outage.
+
+IT Support Engineer — Ballindine Managed Services, Galway
+January 2017 to August 2018
+- Supported small-business Linux and Windows fleets; scripted user
+  provisioning in Bash and PowerShell.
+
+EDUCATION
+Bachelor of Science, Computer Systems — Lough Errin Institute of Technology, 2016
+
+PROJECTS
+Homelab GitOps Cluster (2024)
+- Three-node k3s cluster rebuilt nightly from Terraform and Flux
+  manifests; used to rehearse the production EKS build-out.
+  Tech: Kubernetes, Terraform, Prometheus, Grafana.
+
+CERTIFICATIONS
+- None

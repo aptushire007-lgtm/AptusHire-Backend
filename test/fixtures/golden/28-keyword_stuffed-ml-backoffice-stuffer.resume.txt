@@ -1,0 +1,46 @@
+FARHAN QURESHI
+Lucknow, Uttar Pradesh | farhan.qureshi@example.com | +91-00000-02801
+
+PROFESSIONAL SUMMARY
+Hardworking professional with six years of office experience and a strong
+ambition to move into machine learning engineering. Quick learner who
+enjoys reading about artificial intelligence, data platforms, and
+workplace automation.
+
+CORE COMPETENCIES
+Python | PyTorch | MLOps | SQL | Evaluation
+Experiment tracking | Model registries | Training pipelines | Fine-tuning
+Drift monitoring | Feature engineering | Reproducible training | Pandas
+Deep learning | Model serving | Notebooks | Data pipelines | GPU training
+Machine learning | Artificial intelligence | Big data | Analytics
+
+EXPERIENCE
+
+Insurance Claims Processor — Sentinel Assurance Services, Lucknow
+June 2018 to February 2020
+- Checked claim forms for missing signatures and attached hospital bills.
+- Entered claim details into the branch register and issued
+  acknowledgement slips.
+- Followed up with surveyors for pending inspection reports.
+
+Sales Coordinator — Meadowlark Furnishings, Lucknow
+April 2020 to July 2022
+- Prepared quotations for showroom customers and tracked delivery dates.
+- Maintained the order book and coordinated with the warehouse on stock.
+- Handled festival-season promotions and customer callbacks.
+
+Back Office Executive — Silverpalm Documentation Services, Kanpur
+September 2022 to October 2024
+- Scanned, indexed, and filed loan documents for a banking client.
+- Prepared daily completion counts in a shared register for the team
+  lead.
+- Couriered physical files between branches and logged dispatch numbers.
+
+EDUCATION
+Bachelor of Commerce — Hilltop College of Commerce and Arts, Lucknow, 2015
+
+PROJECTS
+- None
+
+CERTIFICATIONS
+- None

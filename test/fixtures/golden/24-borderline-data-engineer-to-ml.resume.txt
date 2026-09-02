@@ -1,0 +1,50 @@
+SIYONA REDDY
+Hyderabad, Telangana | siyona.reddy@example.com | +91-00000-02401
+
+PROFESSIONAL SUMMARY
+Data engineer with three and a half years building batch and streaming
+pipelines in Python, now working at the boundary of ML platforms: feature
+pipelines, model packaging, and deployment automation. Deep on data
+infrastructure; model development itself has so far been owned by
+colleagues. Looking to move fully into machine learning engineering.
+
+SKILLS
+- Languages: Python (advanced), SQL (window functions, query tuning), Bash
+- Pipelines: Airflow DAGs, dbt models, Kafka consumers, parquet lakes
+- ML platform: feature stores, model packaging, batch inference jobs,
+  deployment automation and rollback for models built by the DS team
+- Infra: containerised jobs, CI pipelines, artifact registries
+- Monitoring: data-quality checks, freshness alerts, pipeline SLAs
+
+EXPERIENCE
+
+Data Engineer — Deccan Insights Labs, Hyderabad
+November 2021 to April 2025
+- Built and operated 40+ Airflow DAGs feeding the analytics warehouse;
+  SQL transformations covering 200+ tables.
+- Owned the feature pipeline for the churn model: backfills, freshness
+  monitoring, and point-in-time correctness checks in Python.
+- Packaged the DS team's scikit-learn and gradient-boosting models into
+  containerised batch inference jobs with automated rollback.
+- Cut warehouse spend 18% by rewriting the heaviest SQL models.
+- Wrote the team's data-quality framework used across three squads.
+
+Junior Data Engineer — Charminar Analytics, Hyderabad
+October 2020 to October 2021
+- Maintained ingestion scripts in Python for nine client data sources.
+- Wrote SQL reports and tuned slow queries for the reporting layer.
+
+EDUCATION
+Bachelor of Technology, Information Technology — Godavari Institute of Technology, 2019
+
+PROJECTS
+Feature store rollout (2024)
+- Migrated churn and pricing features to a shared feature store with
+  point-in-time joins; training/serving skew incidents went to zero.
+
+Streaming quality monitor (2023)
+- Kafka consumer in Python that flags schema drift and null spikes
+  before they reach the warehouse.
+
+CERTIFICATIONS
+- None
