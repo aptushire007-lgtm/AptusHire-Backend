@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Candidate = require("../models/Candidate");
 const Job = require("../models/Job");
 const Resume = require("../models/Resume");
+const ResumeVersion = require("../models/ResumeVersion");
 const InterviewSession = require("../models/InterviewSession");
 const AssessmentSession = require("../models/AssessmentSession");
 const AssessmentPaper = require("../models/AssessmentPaper");
@@ -20,6 +21,7 @@ const { buildNextActions } = require("../utils/candidateNextActions");
 const { resendOrRescheduleInterview } = require("../services/interviewInvitationService");
 const assessmentService = require("../services/assessmentService");
 const { resendAssessment } = assessmentService;
+const { rankRecommendedJobs } = require("../utils/candidateRecommendations");
 // The interview portal owns the cancelled/expired gate and the session-token
 // signing. Importing it (rather than restating either here) is what keeps the
 // dashboard's "open my interview" identical to the magic link's.
@@ -52,7 +54,11 @@ async function getDashboard(req, res) {
   const applicationIds = applications.map((a) => a._id);
 
   const resumes = await Resume.find({ candidateEmail: user.email }).sort({ createdAt: -1 }).limit(5);
-  const hasResume = resumes.length > 0;
+  const resumeVersions = await ResumeVersion.find({ candidateEmail: user.email, isArchived: false })
+    .sort({ isDefault: -1, createdAt: -1 })
+    .limit(5)
+    .lean();
+  const hasResume = resumes.length > 0 || resumeVersions.length > 0;
 
   const completion = await computeProfileCompletion(user, profile, hasResume, applications.length);
   if (completion !== profile.profileCompletionPercent) {
@@ -61,14 +67,23 @@ async function getDashboard(req, res) {
   }
 
   const appliedJobIds = applications.map((a) => a.job?._id).filter(Boolean);
-  const recommendedJobs = await Job.find({
+  // Fetch one indexed, recent candidate-safe pool, then rank it in memory using
+  // the profile and latest/default resume signals. This avoids an N+1 query per
+  // candidate/job while still making relevance the primary ordering signal.
+  const recommendationPool = await Job.find({
     status: "published",
     _id: { $nin: [...appliedJobIds, ...profile.savedJobs] },
-    ...(profile.skills.length > 0 ? { requiredSkills: { $in: profile.skills } } : {}),
   })
     .populate("company", "name")
     .sort({ createdAt: -1 })
-    .limit(5);
+    .limit(200)
+    .lean();
+  const recommendedJobs = rankRecommendedJobs(recommendationPool, {
+    profile,
+    resumes: [...resumeVersions, ...resumes],
+    now: Date.now(),
+    limit: 5,
+  });
 
   const savedJobs = await Job.find({ _id: { $in: profile.savedJobs } }).populate("company", "name");
 
@@ -88,7 +103,7 @@ async function getDashboard(req, res) {
   // the email. Since missing the start window auto-fails the application, that
   // omission decided outcomes.
   const assessmentSessions = await AssessmentSession.find({ candidate: { $in: applicationIds } })
-    .populate("job", "title department")
+    .populate({ path: "job", select: "title department company", populate: { path: "company", select: "name" } })
     .sort({ expiresAt: -1 });
 
   const upcomingInterviews = interviewSessions.filter(
