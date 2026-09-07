@@ -155,7 +155,7 @@ async function autofillFromResume(req, res) {
   // selected file is already in Cloudinary, so repair the snapshot from that
   // source before asking autofill to read it.
   if (version && !resume.extractedText?.trim() && version.filePath) {
-    const buffer = await storageService.getObjectBuffer(version.filePath);
+    const buffer = await storageService.getObjectBuffer(version.filePath, { contentType: version.mimeType });
     const ingest = await extractResumeText(buffer, version.mimeType);
     if (ingest.text) {
       version.parsedSnapshot.rawText = ingest.text;
@@ -236,9 +236,19 @@ async function applyToJob(req, res) {
   // A library résumé is COPIED here rather than referenced: the library lives
   // outside any tenant's partition, and a tenant must never read from a path
   // shared with other tenants' candidates.
-  const resumeBuffer = resumeRef.file
-    ? resumeRef.file.buffer
-    : await storageService.getObjectBuffer(resumeRef.resume.filePath);
+  let resumeBuffer;
+  try {
+    resumeBuffer = resumeRef.file
+      ? resumeRef.file.buffer
+      : await storageService.getObjectBuffer(resumeRef.resume.filePath, { contentType: resumeRef.mimeType });
+  } catch (err) {
+    // The stored resume file could not be fetched (stale reference, deleted
+    // from Cloudinary, or a pre-Cloudinary local path). Ask the candidate to
+    // re-upload rather than surfacing a raw storage error.
+    return res.status(400).json({
+      error: "We could not retrieve your saved resume. Please upload your resume file directly to continue.",
+    });
+  }
   const resumeKey = await storageService.putObject({
     buffer: resumeBuffer,
     key: storageService.buildKey("resumes", { company: job.company, originalName: resumeRef.originalName }),

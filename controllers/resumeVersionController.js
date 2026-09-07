@@ -20,11 +20,16 @@ async function ensureVersionsMigrated(user) {
   if (legacyResumes.length === 0) return;
 
   // Migrate newest as default
-  for (let i = 0; i < Math.min(legacyResumes.length, MAX_ACTIVE_VERSIONS); i++) {
-    const legacy = legacyResumes[i];
+  // Only migrate legacy resumes whose filePath is a valid encoded Cloudinary
+  // reference — raw public IDs and local paths from before Cloudinary was
+  // integrated produce a 404 when fetched and must not appear as selectable
+  // options on the apply form.
+  const validLegacy = legacyResumes.filter((r) => String(r.filePath || "").startsWith("cloudinary:"));
+
+  for (let i = 0; i < Math.min(validLegacy.length, MAX_ACTIVE_VERSIONS); i++) {
+    const legacy = validLegacy[i];
     const textHash = legacy.textHash || (legacy.extractedText ? crypto.createHash("sha256").update(legacy.extractedText, "utf8").digest("hex") : "legacy");
-    
-    // Simple extraction of skills if present
+
     const extractedSkills = [];
     if (legacy.autofill?.payload?.skills) {
       extractedSkills.push(...legacy.autofill.payload.skills);
@@ -35,8 +40,8 @@ async function ensureVersionsMigrated(user) {
       candidateEmail: user.email.toLowerCase(),
       label: legacy.originalName || `Resume_v${i + 1}.pdf`,
       tags: i === 0 ? ["Default"] : ["Version"],
-      fileUrl: legacy.filePath || "",
-      filePath: legacy.filePath || "",
+      fileUrl: legacy.filePath,
+      filePath: legacy.filePath,
       sizeBytes: legacy.sizeBytes || 1024,
       mimeType: legacy.mimeType || "application/pdf",
       checksum: legacy.checksum || crypto.randomBytes(16).toString("hex"),

@@ -42,6 +42,14 @@ function publicIdFor(key) {
   return String(key).replace(/\.[^/.]+$/, "");
 }
 
+function formatForContentType(contentType = "") {
+  const formats = {
+    "application/pdf": "pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  };
+  return formats[String(contentType).toLowerCase()] || "";
+}
+
 function encodeReference(result) {
   return `cloudinary:${Buffer.from(JSON.stringify({
     publicId: result.public_id,
@@ -55,6 +63,31 @@ function decodeReference(reference) {
   const value = String(reference || "");
   if (!value.startsWith("cloudinary:")) throw new Error("storage: invalid Cloudinary reference");
   return JSON.parse(Buffer.from(value.slice("cloudinary:".length), "base64url").toString("utf8"));
+}
+
+// Legacy Resume/ResumeVersion documents written before encodeReference was
+// introduced store a raw Cloudinary public ID (e.g. "resume-library/abc/xyz")
+// or a full https:// URL instead of the encoded reference. This normalises
+// both shapes into the { publicId, resourceType, secureUrl } record that
+// getObjectBuffer and deleteObject need, so old data doesn't crash on apply.
+function resolveReference(reference, { contentType } = {}) {
+  const value = String(reference || "");
+  if (value.startsWith("cloudinary:")) return decodeReference(value);
+  // Full https URL stored directly (older upload path)
+  if (value.startsWith("https://") || value.startsWith("http://")) {
+    return { publicId: null, resourceType: "raw", secureUrl: value };
+  }
+  // Raw public ID — reconstruct a download URL via the Cloudinary SDK
+  if (configured && value) {
+    const hasExtension = /\.[^/.]+$/.test(value);
+    const secureUrl = cloudinary.url(value, {
+      resource_type: "raw",
+      format: hasExtension ? undefined : formatForContentType(contentType),
+      secure: true,
+    });
+    return { publicId: value, resourceType: "raw", secureUrl };
+  }
+  throw new Error("storage: invalid Cloudinary reference");
 }
 
 function uploadBuffer({ buffer, publicId, contentType }) {
@@ -79,16 +112,16 @@ async function putObject({ buffer, key, contentType }) {
   return encodeReference(result);
 }
 
-async function getObjectBuffer(reference) {
+async function getObjectBuffer(reference, options) {
   if (!configured) throw new Error("Cloudinary storage is not configured");
-  const record = decodeReference(reference);
+  const record = resolveReference(reference, options);
   const response = await fetch(record.secureUrl);
   if (!response.ok) throw new Error(`Cloudinary download failed with HTTP ${response.status}`);
   return Buffer.from(await response.arrayBuffer());
 }
 
 async function sendDownload(res, reference, filename, contentType) {
-  const buffer = await getObjectBuffer(reference);
+  const buffer = await getObjectBuffer(reference, { contentType });
   res.setHeader("Content-Disposition", `attachment; filename="${(filename || "download").replace(/"/g, "")}"`);
   if (contentType) res.setHeader("Content-Type", contentType);
   res.send(buffer);
@@ -96,13 +129,14 @@ async function sendDownload(res, reference, filename, contentType) {
 
 async function deleteObject(reference) {
   if (!reference || !configured) return;
-  const record = decodeReference(reference);
+  const record = resolveReference(reference);
+  if (!record.publicId) return; // URL-only legacy record — nothing to destroy via API
   await cloudinary.uploader.destroy(record.publicId, { resource_type: record.resourceType, invalidate: true });
 }
 
 async function getSignedDownloadUrl(reference) {
   if (!reference || !configured) return null;
-  return decodeReference(reference).secureUrl;
+  return resolveReference(reference).secureUrl;
 }
 
 module.exports = { isEnabled, buildKey, putObject, getObjectBuffer, sendDownload, deleteObject, getSignedDownloadUrl };
