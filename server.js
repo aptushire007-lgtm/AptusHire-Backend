@@ -136,6 +136,14 @@ app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || "1mb" }));
 // in place; it no-ops for anonymous/GET traffic. See middleware/auditLog.js.
 app.use(auditLog);
 
+// Root + plain health — for a human (or Railway/UptimeRobot) hitting the base
+// URL, and so `GET /` is a deliberate 200 instead of falling through to the API
+// 404. Registered here, ahead of the careers router (mounted at "/") and the
+// 404 handler. No env, no dependency checks, nothing sensitive — the real
+// dependency probe stays at /api/ready.
+app.get("/", (req, res) => res.json({ status: "ok", message: "AptusHire API is running" }));
+app.get("/health", (req, res) => res.status(200).json({ status: "healthy" }));
+
 // Liveness: is the process up? (used by the LB/orchestrator to decide restart)
 app.get("/api/health", (req, res) => res.json({ ok: true, modules: registry.getEnabledModules() }));
 
