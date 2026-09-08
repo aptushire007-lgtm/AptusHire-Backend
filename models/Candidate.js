@@ -354,7 +354,7 @@ const candidateSchema = new mongoose.Schema(
       at: { type: Date },
       reason: {
         type: String,
-        enum: ["hired_for_other_role", "job_filled", "job_closed", "job_deleted"],
+        enum: ["hired_for_other_role", "job_filled", "job_closed", "job_deleted", "application_removed"],
       },
       // Only for hired_for_other_role — the winning role and application.
       hiredForJob: { type: mongoose.Schema.Types.ObjectId, ref: "Job" },

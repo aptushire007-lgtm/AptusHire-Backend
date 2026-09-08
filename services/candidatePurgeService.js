@@ -84,4 +84,26 @@ async function purgeCandidateArtifacts(candidate) {
   };
 }
 
-module.exports = { purgeCandidateArtifacts };
+async function removeApplicationFromPipeline({ companyId, candidateId, jobId }) {
+  const candidate = await Candidate.findOneAndUpdate(
+    { _id: candidateId, company: companyId, job: jobId },
+    { $set: { "pipelineExit.at": new Date(), "pipelineExit.reason": "application_removed" } },
+    { new: true }
+  );
+  if (!candidate) return null;
+
+  const scope = { company: companyId, candidate: candidate._id, job: candidate.job };
+  const [queueResult, reviewResult] = await Promise.all([
+    InterviewQueue.deleteMany(scope),
+    ReviewItem.deleteMany(scope),
+  ]);
+
+  return {
+    candidateId: candidate._id,
+    jobId: candidate.job,
+    queueEntries: queueResult?.deletedCount || 0,
+    reviewItems: reviewResult?.deletedCount || 0,
+  };
+}
+
+module.exports = { purgeCandidateArtifacts, removeApplicationFromPipeline };
