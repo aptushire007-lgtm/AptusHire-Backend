@@ -15,6 +15,7 @@ const extractResumeText = require("../utils/extractResumeText");
 const atsService = require("../services/atsService");
 const { notifyAdmin, notifyCandidate } = require("../services/notificationService");
 const { applyTransition } = require("../services/pipelineService");
+const { removeApplicationFromPipeline } = require("../services/candidatePurgeService");
 const { allowedNextStages, stageLabel } = require("../utils/pipeline");
 const proctoring = require("../utils/proctoring");
 const { runInBackground } = require("../utils/backgroundTasks");
@@ -569,6 +570,27 @@ async function getCandidate(req, res) {
   const candidate = await Candidate.findOne({ _id: req.params.id, company: req.user.company }).populate("job", "title");
   if (!candidate) return res.status(404).json({ error: "Candidate not found" });
   res.json(candidate);
+}
+
+async function removeApplication(req, res) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id) || !mongoose.Types.ObjectId.isValid(req.params.jobId)) {
+    return res.status(404).json({ error: "Application not found" });
+  }
+
+  const summary = await removeApplicationFromPipeline({
+    companyId: req.user.company,
+    candidateId: req.params.id,
+    jobId: req.params.jobId,
+  });
+  if (!summary) return res.status(404).json({ error: "Application not found for this job" });
+
+  req.audit = {
+    action: "candidate.application_removed",
+    resourceType: "Candidate",
+    resourceId: summary.candidateId,
+    meta: { jobId: summary.jobId, ...summary },
+  };
+  res.json({ message: "Candidate removed from this job", summary });
 }
 
 // Move a candidate to another pipeline stage. Accepts either `stage` (new) or
@@ -1245,6 +1267,7 @@ module.exports = {
   listCandidatesForJob,
   relatedApplications,
   getCandidate,
+  removeApplication,
   moveStage,
   getTimeline,
   exportCandidate,
