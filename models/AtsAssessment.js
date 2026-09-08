@@ -98,6 +98,10 @@ const atsAssessmentSchema = new mongoose.Schema(
 atsAssessmentSchema.index({ company: 1, candidate: 1, createdAt: -1 });
 atsAssessmentSchema.index({ company: 1, job: 1, rubricVersion: 1, createdAt: -1 });
 atsAssessmentSchema.index({ company: 1, mode: 1, band: 1 });
+// Analytics (overview / evidence / audit-pack) scan a tenant's assessments by
+// creation date range with no candidate/job in the predicate — the indexes
+// above can't serve that, so it was a full tenant scan.
+atsAssessmentSchema.index({ company: 1, createdAt: -1 });
 
 atsAssessmentSchema.plugin(require("./plugins/tenantScope"));
 

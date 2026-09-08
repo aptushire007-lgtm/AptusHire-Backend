@@ -136,20 +136,30 @@ function classifyCriterion({ nAdvanced, nRejected, satisfiedAdvanced, satisfiedR
  * (and this whole service) never writes a rubric — insights go to a human.
  */
 async function criterionInsights(rubricId, companyId) {
-  const rubric = await RoleRubric.findOne({ _id: rubricId, company: companyId });
+  // rubric lookup and its outcomes are independent (both keyed by rubricId) —
+  // fetch together. `.lean()` since everything here is read-only aggregation.
+  // Called in a loop by the analytics evidence report, so each saved round-trip
+  // multiplies.
+  const [rubric, outcomes] = await Promise.all([
+    RoleRubric.findOne({ _id: rubricId, company: companyId }).lean(),
+    ScoreOutcome.find({
+      company: companyId,
+      rubric: rubricId,
+      outcome: { $in: ["advanced", "rejected"] },
+    })
+      .select("candidate outcome assessment")
+      .lean(),
+  ]);
   if (!rubric) return null;
 
-  const outcomes = await ScoreOutcome.find({
-    company: companyId,
-    rubric: rubric._id,
-    outcome: { $in: ["advanced", "rejected"] },
-  }).select("candidate outcome assessment");
   const outcomeByAssessment = new Map(outcomes.filter((o) => o.assessment).map((o) => [String(o.assessment), o.outcome]));
 
   const assessments = await AtsAssessment.find({
     _id: { $in: [...outcomeByAssessment.keys()] },
     company: companyId,
-  }).select("criterionFindings");
+  })
+    .select("criterionFindings")
+    .lean();
 
   const stats = new Map(); // criterionId → counters
   for (const a of assessments) {

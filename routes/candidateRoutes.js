@@ -2,6 +2,7 @@ const express = require("express");
 const wrapRouter = require("../middleware/wrapRouter");
 const {
   listCandidates,
+  relatedApplications,
   getCandidate,
   moveStage,
   getTimeline,
@@ -21,8 +22,9 @@ const router = express.Router();
 // available to an expired tenant (read-only mode, never data lockout).
 const requireAdmin = [requireAuth, requireRole("admin"), requireActiveCompany, requireActiveSubscription];
 
-router.get("/", requireAdmin, listCandidates); // Phase 12.5 — company-wide, paginated (kills the per-job N+1)
+router.get("/", requireAdmin, listCandidates); // Phase 12.5 — company-wide, paginated (kills the per-job N+1); ?groupBy=candidate collapses multi-role applicants
 router.get("/:id", requireAdmin, getCandidate);
+router.get("/:id/related", requireAdmin, relatedApplications); // Phase 17 — other applications by the same person at this company
 router.get("/:id/resume", requireAdmin, downloadResume);
 router.get("/:id/timeline", requireAdmin, getTimeline);
 router.get("/:id/export", requireAdmin, exportCandidate);

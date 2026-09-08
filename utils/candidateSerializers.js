@@ -8,6 +8,17 @@
 // A candidate's view of their own application. Stage history is stages+dates
 // only: `by` (admin identity) and `note` (internal remarks) stay server-side.
 function toApplicationView(c) {
+  // The role this application was for is gone or full (Phase 17 pipelineExit):
+  // the process is closed and nothing about it will move again. Surfaced so the
+  // dashboard can show the outcome and withhold every "resume"/"start" action —
+  // `reason` + `at` only, never the internal `hiredForJob`/`hiredApplication`.
+  // A job deleted before the release cascade shipped leaves no marker but a
+  // dangling `job` ref, so treat an unpopulated job as the same closed state.
+  const exit = c.pipelineExit && c.pipelineExit.at
+    ? { at: c.pipelineExit.at, reason: c.pipelineExit.reason }
+    : !c.job && c.job !== undefined
+      ? { at: null, reason: "job_deleted" }
+      : undefined;
   return {
     _id: c._id,
     job: c.job
@@ -20,6 +31,7 @@ function toApplicationView(c) {
       : c.job,
     status: c.status,
     createdAt: c.createdAt,
+    pipelineExit: exit,
     resumeOriginalName: c.resumeOriginalName,
     stageHistory: (c.stageHistory || []).map((h) => ({ stage: h.stage, at: h.at })),
     offer:

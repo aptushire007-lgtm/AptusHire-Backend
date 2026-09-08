@@ -11,6 +11,15 @@ const jobSchema = new mongoose.Schema(
     requirements: { type: String },
     status: { type: String, enum: ["draft", "published", "closed"], default: "draft" },
 
+    // Recruiter-only vacancy capacity. Public job serializers deliberately
+    // remove these fields: applicants need to know whether a role is open, not
+    // the employer's internal headcount plan.
+    numberOfOpenings: { type: Number, required: true, min: 1, max: 10000, default: 1 },
+    filledOpenings: { type: Number, min: 0, default: 0 },
+    pendingOffers: { type: Number, min: 0, default: 0 },
+    autoClosedAt: { type: Date },
+    closureReason: { type: String, enum: ["openings_filled"] },
+
     requiredSkills: { type: [String], default: [] },
     minExperienceYears: { type: Number, default: 0 },
     requiredEducation: { type: String, trim: true },

@@ -323,6 +323,43 @@ const candidateSchema = new mongoose.Schema(
       note: { type: String, trim: true, maxlength: 1000, default: "" },
       requestedAt: { type: Date },
     },
+
+    // ─── Multi-role application identity (Phase 17) ─────────────────────────────
+    // This document is ONE APPLICATION: one person → one job. The person's
+    // permanent identity is their User account; `candidateUser` is the stable
+    // relational link to it, and `candidateProfile` points at the 1:1
+    // CandidateProfile. Both are set at apply time from the authenticated
+    // session — never from a client-supplied value.
+    //
+    // `basicDetails.email` stays as the legacy/no-account fallback and keeps its
+    // own uniqueness guard. Applications created before this field existed have
+    // no `candidateUser` until the backfill script runs, so every "this person's
+    // applications" query must match on (candidateUser OR basicDetails.email).
+    candidateUser: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    candidateProfile: { type: mongoose.Schema.Types.ObjectId, ref: "CandidateProfile" },
+
+    // Set when this application leaves the ACTIVE pipeline for a reason that is
+    // not a recruiter's reject decision:
+    //   hired_for_other_role — the same person was hired for a different role
+    //                          here (pipelineService, on the `joined` move)
+    //   job_filled           — the role filled all its openings and auto-closed
+    //   job_closed           — a recruiter closed/unpublished the role
+    //   job_deleted          — the role was deleted
+    // The record is kept intact for audit/reporting — never deleted, never
+    // forced to `rejected` (which would misreport the outcome). `status` keeps
+    // whatever stage it had reached; the presence of `pipelineExit.at` is what
+    // takes it off the board, and the UI derives its label from `reason`.
+    // Cleared again if the role is re-published (job_closed / job_filled only).
+    pipelineExit: {
+      at: { type: Date },
+      reason: {
+        type: String,
+        enum: ["hired_for_other_role", "job_filled", "job_closed", "job_deleted"],
+      },
+      // Only for hired_for_other_role — the winning role and application.
+      hiredForJob: { type: mongoose.Schema.Types.ObjectId, ref: "Job" },
+      hiredApplication: { type: mongoose.Schema.Types.ObjectId, ref: "Candidate" },
+    },
   },
   { timestamps: true }
 );
@@ -334,6 +371,10 @@ const candidateSchema = new mongoose.Schema(
 candidateSchema.index({ company: 1, job: 1, createdAt: -1 });
 // Retention job scans a tenant's candidates by last-touched time (jobs/retentionJob).
 candidateSchema.index({ company: 1, updatedAt: 1 });
+// Analytics (overview / sources reports) scan a tenant's candidates by creation
+// date range; without `job` in the predicate the {company,job,createdAt} index
+// above can't serve the range, so it degrades to a full tenant scan.
+candidateSchema.index({ company: 1, createdAt: -1 });
 // Candidate dashboard + notification ownership resolve applications by the account email,
 // across companies (runs outside tenant scope).
 candidateSchema.index({ "basicDetails.email": 1 });
@@ -343,6 +384,18 @@ candidateSchema.index({ "basicDetails.email": 1 });
 // scripts/syncIndexes.js after deploy; pre-existing duplicates must be merged
 // or removed first or index creation fails.
 candidateSchema.index({ job: 1, "basicDetails.email": 1 }, { unique: true });
+
+// Multi-role (Phase 17): a person's applications across one company — the
+// recruiter "related applications" panel, close-siblings-on-hire, and the
+// distinct-candidate analytics count all read this path.
+candidateSchema.index({ company: 1, candidateUser: 1, createdAt: -1 });
+// The id-keyed twin of the (job, email) guard above: one application per
+// (job, account). Partial so the many legacy rows with no `candidateUser` do
+// not all collide on null — new applications are guarded by BOTH indexes.
+candidateSchema.index(
+  { job: 1, candidateUser: 1 },
+  { unique: true, partialFilterExpression: { candidateUser: { $type: "objectId" } } }
+);
 
 candidateSchema.plugin(require("./plugins/tenantScope"));
 

@@ -191,10 +191,13 @@ async function applyToJob(req, res) {
   const consentAi = truthy(req.body.consentAiProcessing);
   const consentData = truthy(req.body.consentDataProcessing);
 
-  // The application is bound to the signed-in account's email, never a form
-  // value — a free-form email would let anyone apply as any address and route
-  // another person's notifications and interview link.
+  // The application is bound to the signed-in account, never a form value — a
+  // free-form email would let anyone apply as any address and route another
+  // person's notifications and interview link. `candidateUser` is the stable
+  // relational identity (Phase 17); email stays as the human-readable key and
+  // the legacy/no-account fallback.
   const email = String(req.user.email || "").toLowerCase().trim();
+  const candidateUser = req.user._id;
 
   const job = await Job.findByIdOrSlug(jobIdOrSlug);
   if (!job || job.status !== "published") {
@@ -208,9 +211,15 @@ async function applyToJob(req, res) {
     return res.status(400).json({ error: "Name and email are required" });
   }
 
-  // One application per job per person. The unique (company, job, email) index
-  // is the race-proof guard; this pre-check exists for the friendly message.
-  const existing = await Candidate.findOne({ company: job.company, job: job._id, "basicDetails.email": email }).select("_id");
+  // One application per job per person. The unique (job, email) and
+  // (job, candidateUser) indexes are the race-proof guards; this pre-check
+  // exists for the friendly message and matches on EITHER identity so a legacy
+  // application (email only, no candidateUser yet) is still detected.
+  const existing = await Candidate.findOne({
+    company: job.company,
+    job: job._id,
+    $or: [{ candidateUser }, { "basicDetails.email": email }],
+  }).select("_id");
   if (existing) {
     return res.status(409).json({ error: "You have already applied to this job. You can track it from your dashboard." });
   }
@@ -274,11 +283,18 @@ async function applyToJob(req, res) {
   );
   const usedAutofill = attributed.counts.accepted > 0 || attributed.counts.edited > 0;
 
+  // The 1:1 profile is created lazily elsewhere (dashboard first load); link it
+  // if it exists, but never block an application on it.
+  const CandidateProfile = require("../models/CandidateProfile");
+  const candidateProfileDoc = await CandidateProfile.findOne({ user: candidateUser }).select("_id");
+
   let candidate;
   try {
     candidate = await Candidate.create({
       job: job._id,
       company: job.company,
+      candidateUser,
+      candidateProfile: candidateProfileDoc?._id,
       basicDetails: { name, email, phone, location, linkedinUrl, portfolioUrl },
       experience: attributed.experience,
       education: attributed.education,
@@ -413,16 +429,140 @@ async function listCandidatesForJob(req, res) {
 
 // GET /api/candidates — company-wide, paginated, job populated (Phase 12.5).
 // One request replaces the admin app's one-request-per-job fan-out.
+//
+// `?groupBy=candidate` (Phase 17): collapse a person's multiple applications
+// into ONE row — { candidateUser, name, email, applicationCount,
+// latestApplication, applications[] } — so the recruiter list stops showing the
+// same person once per role. All other filters (jobId, stage) still apply and
+// narrow which applications a person is grouped from.
 async function listCandidates(req, res) {
   const filter = { company: req.user.company };
   if (req.query.jobId && mongoose.Types.ObjectId.isValid(req.query.jobId)) filter.job = req.query.jobId;
   if (req.query.stage) filter.status = req.query.stage;
   const { page, limit } = parsePagination(req, { defaultLimit: 200, maxLimit: 500 });
+
+  if (req.query.groupBy === "candidate") {
+    return res.json(await listCandidatesGrouped(req, filter, page, limit));
+  }
+
   const [items, total] = await Promise.all([
     Candidate.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).populate("job", "title department status"),
     Candidate.countDocuments(filter),
   ]);
   res.json({ items, total, page, pages: Math.ceil(total / limit), limit });
+}
+
+// Aggregation for `?groupBy=candidate`. The tenant-scope plugin injects
+// `{ company }` into find()/countDocuments() but NOT aggregate(), so `company`
+// is matched explicitly here. Group key is the stable `candidateUser` when set,
+// falling back to the lowercased email for legacy rows that predate it — so one
+// person is never split across two rows.
+async function listCandidatesGrouped(req, filter, page, limit) {
+  const match = { company: new mongoose.Types.ObjectId(String(req.user.company)) };
+  if (filter.job) match.job = new mongoose.Types.ObjectId(String(filter.job));
+  if (filter.status) match.status = filter.status;
+
+  const groupKey = { $ifNull: ["$candidateUser", "$basicDetails.email"] };
+  const pipeline = [
+    { $match: match },
+    { $sort: { createdAt: -1 } },
+    {
+      $group: {
+        _id: groupKey,
+        candidateUser: { $first: "$candidateUser" },
+        name: { $first: "$basicDetails.name" },
+        email: { $first: "$basicDetails.email" },
+        applicationCount: { $sum: 1 },
+        latestApplicationAt: { $max: "$createdAt" },
+        applications: {
+          $push: {
+            _id: "$_id",
+            job: "$job",
+            status: "$status",
+            appliedAt: "$createdAt",
+            pipelineExit: "$pipelineExit",
+          },
+        },
+      },
+    },
+    { $sort: { latestApplicationAt: -1 } },
+    {
+      $facet: {
+        rows: [
+          { $skip: (page - 1) * limit },
+          { $limit: limit },
+          { $lookup: { from: "jobs", localField: "applications.job", foreignField: "_id", as: "_jobs" } },
+        ],
+        meta: [{ $count: "total" }],
+      },
+    },
+  ];
+
+  const [res0] = await Candidate.aggregate(pipeline);
+  const total = res0?.meta?.[0]?.total || 0;
+  const rows = (res0?.rows || []).map((row) => {
+    const jobById = new Map((row._jobs || []).map((j) => [String(j._id), j]));
+    const applications = row.applications
+      .map((a) => {
+        const j = jobById.get(String(a.job));
+        return {
+          _id: a._id,
+          job: j ? { _id: j._id, title: j.title, department: j.department, status: j.status } : a.job,
+          status: a.status,
+          appliedAt: a.appliedAt,
+          pipelineExit: a.pipelineExit?.at ? a.pipelineExit : undefined,
+        };
+      })
+      .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+    return {
+      candidateUser: row.candidateUser || null,
+      name: row.name,
+      email: row.email,
+      applicationCount: row.applicationCount,
+      latestApplication: applications[0] || null,
+      applications,
+    };
+  });
+
+  return { items: rows, total, page, pages: Math.ceil(total / limit), limit, groupedBy: "candidate" };
+}
+
+// GET /api/candidates/:id/related — other applications by the SAME person to
+// OTHER jobs at the recruiter's own company. Company-scoped, so Company Y never
+// sees Company X's applications for the same person (data isolation).
+async function relatedApplications(req, res) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ error: "Candidate not found" });
+  }
+  const anchor = await Candidate.findOne({ _id: req.params.id, company: req.user.company })
+    .select("candidateUser basicDetails.email");
+  if (!anchor) return res.status(404).json({ error: "Candidate not found" });
+
+  // Match on the stable id when we have one, otherwise the email — never both as
+  // an $or that could pull in a different person who happens to share neither.
+  const identity = anchor.candidateUser
+    ? { candidateUser: anchor.candidateUser }
+    : { "basicDetails.email": anchor.basicDetails?.email };
+
+  const siblings = await Candidate.find({
+    company: req.user.company,
+    _id: { $ne: anchor._id },
+    ...identity,
+  })
+    .select("job status createdAt pipelineExit basicDetails.name")
+    .sort({ createdAt: -1 })
+    .populate("job", "title department status");
+
+  res.json({
+    count: siblings.length,
+    applications: siblings.map((s) => ({
+      _id: s._id,
+      job: s.job,
+      status: s.status,
+      appliedAt: s.createdAt,
+      pipelineExit: s.pipelineExit?.at ? s.pipelineExit : undefined,
+    })),
+  });
 }
 
 async function getCandidate(req, res) {
@@ -1103,6 +1243,7 @@ module.exports = {
   autofillFromResume,
   listCandidates,
   listCandidatesForJob,
+  relatedApplications,
   getCandidate,
   moveStage,
   getTimeline,

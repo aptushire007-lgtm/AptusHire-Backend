@@ -1,7 +1,23 @@
 const Job = require("../models/Job");
+const Candidate = require("../models/Candidate");
 const { generateJobSlug } = require("../utils/slug");
 const rubricService = require("../services/rubricService");
 const { sourceHashOf } = require("../utils/rubricEngine");
+const capacityService = require("../services/jobCapacityService");
+
+const RECRUITER_ONLY_JOB_FIELDS = [
+  "numberOfOpenings",
+  "filledOpenings",
+  "pendingOffers",
+  "autoClosedAt",
+  "closureReason",
+];
+
+function toPublicJob(job) {
+  const payload = job?.toObject ? job.toObject() : { ...job };
+  for (const field of RECRUITER_ONLY_JOB_FIELDS) delete payload[field];
+  return payload;
+}
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -12,7 +28,15 @@ async function createJob(req, res) {
   // machine-readable 429 — never a silent failure.
   await require("../services/quotaService").enforce(req.user.company, "jobs", { actor: req.user });
 
-  const { slug, ...body } = req.body;
+  const {
+    slug,
+    filledOpenings,
+    pendingOffers,
+    autoClosedAt,
+    closureReason,
+    ...body
+  } = req.body;
+  body.numberOfOpenings = capacityService.validateNumberOfOpenings(body.numberOfOpenings ?? 1);
   const job = await Job.create({ ...body, company: req.user.company, slug: generateJobSlug(body.title) });
 
   // Compile a draft rubric the moment the JD exists — nothing else in the product
@@ -78,8 +102,8 @@ async function listJobs(req, res) {
 }
 
 async function listPublishedJobs(req, res) {
-  const jobs = await Job.find({ status: "published" }).populate("company", "name logoPath").sort({ createdAt: -1 });
-  res.json(jobs);
+  const jobs = await Job.find({ status: "published" }).populate("company", "name logoPath").sort({ createdAt: -1 }).lean();
+  res.json(jobs.map(toPublicJob));
 }
 
 async function getJob(req, res) {
@@ -103,12 +127,43 @@ async function getJob(req, res) {
   // owning admin — public candidate-portal callers never see it.
   if (isOwningAdmin) {
     payload.rubricStatus = await rubricService.latestStatusForJob(job._id, req.user.company);
+  } else {
+    for (const field of RECRUITER_ONLY_JOB_FIELDS) delete payload[field];
   }
+
+  // A signed-in candidate: has this person already applied to this job? One
+  // application per job per person is enforced at POST /apply (409 + unique
+  // index); this lets the portal show "Applied" instead of an Apply button
+  // that would only fail. Matched on the stable account id OR the email so a
+  // pre-Phase-17 application (email only) is still recognised.
+  if (req.user && req.user.role === "candidate") {
+    const email = String(req.user.email || "").toLowerCase().trim();
+    const mine = await Candidate.findOne({
+      company: job.company,
+      job: job._id,
+      $or: [{ candidateUser: req.user._id }, { "basicDetails.email": email }],
+    })
+      .select("_id status")
+      .lean();
+    payload.alreadyApplied = Boolean(mine);
+    if (mine) payload.myApplication = { _id: mine._id, status: mine.status };
+  }
+
   res.json(payload);
 }
 
 async function updateJob(req, res) {
-  const { company, ...updates } = req.body;
+  const {
+    company,
+    filledOpenings,
+    pendingOffers,
+    autoClosedAt,
+    closureReason,
+    ...updates
+  } = req.body;
+  if (updates.numberOfOpenings !== undefined) {
+    updates.numberOfOpenings = capacityService.validateNumberOfOpenings(updates.numberOfOpenings);
+  }
   const job = await Job.findOne({ _id: req.params.id, company: req.user.company });
   if (!job) return res.status(404).json({ error: "Job not found" });
 
@@ -119,6 +174,10 @@ async function updateJob(req, res) {
   const hashBefore = sourceHashOf(job);
   const wasPublished = job.status === "published";
   Object.assign(job, updates);
+  if (updates.status === "published") {
+    job.autoClosedAt = undefined;
+    job.closureReason = undefined;
+  }
   await job.save();
 
   // Lifecycle sync (Phase 15.8): un-publishing a job withdraws it from every
@@ -128,6 +187,20 @@ async function updateJob(req, res) {
       .withdrawAllForJob(job._id, req.user.company, `status → ${job.status}`)
       .catch((err) => console.error(`[publish] withdraw-all failed for job ${job._id}:`, err.message));
   }
+
+  const actorName = req.user.name || req.user.email || "admin";
+  // Closing a role has no live seat to hire into — release its in-flight
+  // candidates from the board (records kept, not rejected). Re-publishing puts
+  // the close/fill-released ones back.
+  if (wasPublished && job.status === "closed") {
+    capacityService
+      .releaseJobCandidates(job._id, req.user.company, "job_closed", { actorName })
+      .catch((err) => console.error(`[lifecycle] release candidates failed for job ${job._id}:`, err.message));
+  } else if (!wasPublished && job.status === "published") {
+    capacityService
+      .restoreJobCandidates(job._id, req.user.company, { actorName })
+      .catch((err) => console.error(`[lifecycle] restore candidates failed for job ${job._id}:`, err.message));
+  }
   if (sourceHashOf(job) !== hashBefore) {
     rubricService
       .supersede(job)
@@ -136,7 +209,10 @@ async function updateJob(req, res) {
       })
       .catch((err) => console.error(`[rubric] supersede failed for job ${job._id}:`, err.message));
   }
-  res.json(job);
+  const capacity = updates.numberOfOpenings !== undefined || updates.status === "published"
+    ? await capacityService.reconcileJobCapacity(job._id, req.user.company, { actorName: req.user.name || req.user.email || "admin" })
+    : null;
+  res.json(capacity?.job || job);
 }
 
 async function publishJob(req, res) {
@@ -162,8 +238,30 @@ async function publishJob(req, res) {
     });
   }
 
+  const snapshot = await capacityService.capacitySnapshot(job._id, req.user.company);
+  const openings = capacityService.validateNumberOfOpenings(job.numberOfOpenings ?? 1);
+  if (snapshot.filledOpenings >= openings) {
+    return res.status(409).json({
+      error: "This job already has all openings filled. Increase the number of openings before publishing it again.",
+      code: "OPENINGS_FILLED",
+      numberOfOpenings: openings,
+      filledOpenings: snapshot.filledOpenings,
+    });
+  }
+
   job.status = "published";
+  job.filledOpenings = snapshot.filledOpenings;
+  job.pendingOffers = snapshot.pendingOffers;
+  job.autoClosedAt = undefined;
+  job.closureReason = undefined;
   await job.save();
+
+  // Re-opening the role puts back the candidates that a previous close/fill
+  // released from the board (delete- and hire-elsewhere exits stay put).
+  capacityService
+    .restoreJobCandidates(job._id, req.user.company, { actorName: req.user.name || req.user.email || "admin" })
+    .catch((err) => console.error(`[lifecycle] restore candidates failed for job ${job._id}:`, err.message));
+
   res.json(job);
 }
 
@@ -175,6 +273,15 @@ async function deleteJob(req, res) {
   // interview for a role that was deleted" is not a decision. Left behind they
   // sit in the queue forever asking a recruiter to make it.
   await require("../models/ReviewItem").deleteMany({ company: req.user.company, job: job._id });
+  // Candidates for a deleted role can never be actioned — take them off the
+  // board (`pipelineExit`). The Candidate records themselves are KEPT: they are
+  // application history and feed reporting/audit; only the pipeline view drops
+  // them. Not marked `rejected` — no one decided that.
+  await capacityService
+    .releaseJobCandidates(job._id, req.user.company, "job_deleted", {
+      actorName: req.user.name || req.user.email || "admin",
+    })
+    .catch((err) => console.error(`[lifecycle] release candidates failed for deleted job ${job._id}:`, err.message));
   // Lifecycle sync (Phase 15.8): a deleted job is withdrawn from every board.
   require("../services/jobPublishService")
     .withdrawAllForJob(job._id, req.user.company, "job deleted")

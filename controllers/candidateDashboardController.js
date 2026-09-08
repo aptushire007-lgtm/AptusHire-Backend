@@ -44,11 +44,20 @@ async function computeProfileCompletion(user, profile, hasResume, applicationCou
   return score;
 }
 
+// A candidate's applications are matched by their stable account id
+// (`candidateUser`, Phase 17) OR — for applications created before that field
+// existed — the account email. One helper so every candidate-side query agrees
+// on what "mine" means, and an email change never orphans older applications.
+function ownApplicationFilter(user) {
+  const email = String(user.email || "").toLowerCase().trim();
+  return { $or: [{ candidateUser: user._id }, { "basicDetails.email": email }] };
+}
+
 async function getDashboard(req, res) {
   const user = req.user;
   const profile = await getOrCreateProfile(user._id);
 
-  const applications = await Candidate.find({ "basicDetails.email": user.email })
+  const applications = await Candidate.find(ownApplicationFilter(user))
     .populate({ path: "job", select: "title department company", populate: { path: "company", select: "name" } })
     .sort({ createdAt: -1 });
   const applicationIds = applications.map((a) => a._id);
@@ -74,6 +83,7 @@ async function getDashboard(req, res) {
     status: "published",
     _id: { $nin: [...appliedJobIds, ...profile.savedJobs] },
   })
+    .select("-numberOfOpenings -filledOpenings -pendingOffers -autoClosedAt -closureReason")
     .populate("company", "name")
     .sort({ createdAt: -1 })
     .limit(200)
@@ -85,7 +95,9 @@ async function getDashboard(req, res) {
     limit: 5,
   });
 
-  const savedJobs = await Job.find({ _id: { $in: profile.savedJobs } }).populate("company", "name");
+  const savedJobs = await Job.find({ _id: { $in: profile.savedJobs }, status: "published" })
+    .select("-numberOfOpenings -filledOpenings -pendingOffers -autoClosedAt -closureReason")
+    .populate("company", "name");
 
   const notifications = await Notification.find({
     $or: [{ candidate: { $in: applicationIds } }, { user: user._id }],
@@ -106,8 +118,22 @@ async function getDashboard(req, res) {
     .populate({ path: "job", select: "title department company", populate: { path: "company", select: "name" } })
     .sort({ expiresAt: -1 });
 
+  // Applications whose role was deleted / filled / closed (Phase 17). Their
+  // process is over, so a still-"scheduled" interview or an open assessment
+  // window attached to one must not be surfaced as something to act on — the
+  // link would lead into a role that no longer exists.
+  const exitedApplicationIds = new Set(
+    applications
+      .filter((a) => (a.pipelineExit && a.pipelineExit.at) || !a.job)
+      .map((a) => String(a._id))
+  );
+  const isLiveApplication = (sessionCandidateId) => !exitedApplicationIds.has(String(sessionCandidateId));
+
   const upcomingInterviews = interviewSessions.filter(
-    (s) => (s.status === "scheduled" || s.status === "in_progress") && s.interviewAt >= now
+    (s) =>
+      (s.status === "scheduled" || s.status === "in_progress") &&
+      s.interviewAt >= now &&
+      isLiveApplication(s.candidate)
   );
   const aiInterviewHistory = interviewSessions.filter((s) => s.status !== "scheduled" || s.interviewAt < now);
 
@@ -184,7 +210,7 @@ async function updateProfile(req, res) {
 async function getOwnApplication(req, res) {
   const candidate = await Candidate.findOne({
     _id: req.params.id,
-    "basicDetails.email": String(req.user.email || "").toLowerCase().trim(),
+    ...ownApplicationFilter(req.user),
   }).populate({
     path: "job",
     select: "title slug department location company",
@@ -213,12 +239,11 @@ async function getOwnApplication(req, res) {
 }
 
 async function getOwnAssessmentResult(req, res) {
-  const email = String(req.user.email || "").toLowerCase().trim();
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).json({ error: "Assessment result not found" });
   const session = await AssessmentSession.findOne({ _id: req.params.id, status: "completed" })
     .select("candidate company job paper status completedAt result");
   if (!session) return res.status(404).json({ error: "Assessment result not found" });
-  const candidate = await Candidate.findOne({ _id: session.candidate, "basicDetails.email": email }).select("_id");
+  const candidate = await Candidate.findOne({ _id: session.candidate, ...ownApplicationFilter(req.user) }).select("_id");
   if (!candidate) return res.status(404).json({ error: "Assessment result not found" });
   if (!session?.result?.scoredAt) return res.status(404).json({ error: "Assessment result is not available yet" });
 
@@ -253,8 +278,11 @@ async function getOwnAssessmentResult(req, res) {
 }
 
 async function getOwnRejectionReport(req, res) {
-  const email = String(req.user.email || "").toLowerCase().trim();
-  const candidate = await Candidate.findOne({ _id: req.params.id, "basicDetails.email": email, status: "rejected" }).select("_id company");
+  const candidate = await Candidate.findOne({
+    _id: req.params.id,
+    status: "rejected",
+    ...ownApplicationFilter(req.user),
+  }).select("_id company");
   if (!candidate) return res.status(404).json({ error: "Rejection analysis not found" });
   const report = await require("../services/candidateRejectionReportService").getCandidateRejectionReport(candidate._id, candidate.company);
   if (!report) return res.status(404).json({ error: "Rejection analysis is not available yet" });
@@ -301,8 +329,21 @@ async function loadOwnSession(req) {
   const Model = kind === "assessment" ? AssessmentSession : InterviewSession;
   const session = await Model.findById(id).populate("candidate").populate("job");
   if (!session) throw notFound();
-  if (session.candidate?.basicDetails?.email !== req.user.email) throw notFound();
+  // Ownership: the application's stable account id (Phase 17) OR its email.
+  const ownsById =
+    session.candidate?.candidateUser && String(session.candidate.candidateUser) === String(req.user._id);
+  const ownsByEmail = session.candidate?.basicDetails?.email === req.user.email;
+  if (!ownsById && !ownsByEmail) throw notFound();
   if (!session.job) throw Object.assign(new Error("Job not found"), { status: 404 });
+  // The role filled or closed and this application was taken off the pipeline
+  // (Phase 17). A deleted job is already caught above by the missing populate;
+  // this covers a role that still exists but is no longer accepting anyone.
+  if (session.candidate?.pipelineExit?.at) {
+    throw Object.assign(
+      new Error("This role is no longer accepting candidates, so the application was closed."),
+      { status: 409 }
+    );
+  }
 
   return { kind, session, candidate: session.candidate, job: session.job };
 }

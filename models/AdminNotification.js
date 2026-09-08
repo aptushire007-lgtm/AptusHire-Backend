@@ -37,6 +37,7 @@ const adminNotificationSchema = new mongoose.Schema(
         "candidate_stage_changed",
         "candidate_selected",
         "candidate_joined",
+        "job_filled",
         "offer_accepted",
         "interview_completed",
         "ai_report_ready",

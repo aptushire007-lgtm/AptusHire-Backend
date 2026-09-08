@@ -352,6 +352,27 @@ function stageUpdateEmailTemplate(candidate, job, stageLabel, note) {
   return { subject, text, html };
 }
 
+function jobFilledEmailTemplate(admin, job, capacity) {
+  const name = admin.name || "Recruiter";
+  const openings = capacity.numberOfOpenings;
+  const subject = `${job.title} is now fully staffed`;
+  const text =
+    `Hi ${name},\n\n` +
+    `${job.title} has filled all ${openings} opening${openings === 1 ? "" : "s"}. ` +
+    `The job was closed automatically and removed from candidate and connected job-board listings.\n\n` +
+    `Filled: ${capacity.filledOpenings} of ${openings}\n` +
+    `Offers awaiting response: ${capacity.pendingOffers}\n\n` +
+    `Regards,\nAptusHire`;
+  const html =
+    `<p>Hi ${escapeHtml(name)},</p>` +
+    `<p><strong>${escapeHtml(job.title)}</strong> has filled all ${escapeHtml(String(openings))} opening${openings === 1 ? "" : "s"}. ` +
+    `The job was closed automatically and removed from candidate and connected job-board listings.</p>` +
+    `<p><strong>Filled:</strong> ${escapeHtml(String(capacity.filledOpenings))} of ${escapeHtml(String(openings))}<br/>` +
+    `<strong>Offers awaiting response:</strong> ${escapeHtml(String(capacity.pendingOffers))}</p>` +
+    `<p>Regards,<br/>AptusHire</p>`;
+  return { subject, text, html };
+}
+
 function paymentSuccessEmailTemplate(company, admin, payment) {
   const subject = `Payment received — ${company.name}`;
   const text =
@@ -460,6 +481,7 @@ module.exports = {
   interviewReminderEmailTemplate,
   offerLetterEmailTemplate,
   stageUpdateEmailTemplate,
+  jobFilledEmailTemplate,
   paymentSuccessEmailTemplate,
   paymentFailedEmailTemplate,
   invoiceEmailTemplate,

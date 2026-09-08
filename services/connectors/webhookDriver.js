@@ -38,6 +38,10 @@ function jobPayload(job) {
       description: job.description,
       requirements: job.requirements,
       slug: job.slug,
+      numberOfOpenings: job.numberOfOpenings,
+      filledOpenings: job.filledOpenings,
+      pendingOffers: job.pendingOffers,
+      status: job.status,
     },
   };
 }
@@ -71,7 +75,15 @@ module.exports = {
 
   async withdraw({ job, credential, externalRef }) {
     if (!credential?.url || !credential?.secret) return {};
-    await post(credential, "job.withdrawn", { job: { id: externalRef || String(job?._id) } });
+    await post(credential, "job.withdrawn", {
+      job: {
+        id: externalRef || String(job?._id),
+        status: job?.status,
+        closureReason: job?.closureReason,
+        numberOfOpenings: job?.numberOfOpenings,
+        filledOpenings: job?.filledOpenings,
+      },
+    });
     return {};
   },
 

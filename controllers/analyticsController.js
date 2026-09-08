@@ -41,16 +41,31 @@ async function getOverview(req, res) {
   const { from, to } = parseRange(req);
   const range = { $gte: from, $lte: to };
 
-  const candidates = await Candidate.find({ company, createdAt: range }).select("status stageHistory createdAt ats");
-  const assessments = await AtsAssessment.find({ company, createdAt: range, stage: "pre_interview" }).select(
-    "overallScore band decision mode"
-  );
-  const [jobCount, interviewsCompleted] = await Promise.all([
+  // One round-trip instead of four serial ones. All four are independent, and
+  // `.lean()` skips Mongoose document hydration — these rows are only read and
+  // aggregated, never saved, so the full model instances were pure overhead.
+  const [candidates, assessments, jobCount, interviewsCompleted] = await Promise.all([
+    Candidate.find({ company, createdAt: range })
+      .select("status stageHistory createdAt ats candidateUser basicDetails.email")
+      .lean(),
+    AtsAssessment.find({ company, createdAt: range, stage: "pre_interview" })
+      .select("overallScore band decision mode")
+      .lean(),
     Job.countDocuments({ company }),
     InterviewSession.countDocuments({ company, "aiInterview.completedAt": range }),
   ]);
 
   const funnel = computeFunnel(candidates);
+
+  // `candidates` here is a list of APPLICATIONS (one Candidate doc = one
+  // person↔job). A person applying to three roles must not read as three
+  // unique candidates: dedupe on the stable account id, falling back to email
+  // (legacy rows) then the doc id (guest applications with neither).
+  const applicationCount = candidates.length;
+  const uniqueCandidates = new Set(
+    candidates.map((c) => String(c.candidateUser || c.basicDetails?.email || c._id))
+  ).size;
+
   const decisions = { pass: 0, review: 0, fail: 0 };
   for (const c of candidates) {
     const d = c.ats?.decision;
@@ -63,7 +78,10 @@ async function getOverview(req, res) {
   res.json({
     range: { from, to },
     totals: {
-      candidates: candidates.length,
+      // "candidates" = distinct people (kept as the headline number the UI
+      // already reads); "applications" = person↔job rows.
+      candidates: uniqueCandidates,
+      applications: applicationCount,
       jobs: jobCount,
       interviewsCompleted,
       hires: funnel.stages.find((s) => s.stage === "joined")?.count || 0,
@@ -71,8 +89,10 @@ async function getOverview(req, res) {
     },
     screening: {
       decisions,
-      passRate: candidates.length ? Math.round((decisions.pass / candidates.length) * 1000) / 1000 : null,
-      reviewRate: candidates.length ? Math.round((decisions.review / candidates.length) * 1000) / 1000 : null,
+      // Rates are per APPLICATION (the right denominator for "% of applications
+      // that passed screening"), not per unique candidate.
+      passRate: applicationCount ? Math.round((decisions.pass / applicationCount) * 1000) / 1000 : null,
+      reviewRate: applicationCount ? Math.round((decisions.review / applicationCount) * 1000) / 1000 : null,
       scoreDistribution: scoreDistribution(scores),
       scoreSource: assessments.length ? "evidence" : "legacy",
     },
@@ -87,18 +107,24 @@ async function getEvidence(req, res) {
   const { from, to } = parseRange(req, 365);
   const range = { $gte: from, $lte: to };
 
-  const assessments = await AtsAssessment.find({ company, createdAt: range }).select("band criterionFindings qa");
-
-  // Claim-verification outcomes joined to normalised skills (Phase 8 verdicts).
-  const sessions = await InterviewSession.find({
-    company,
-    "aiInterview.probes.0": { $exists: true },
-    updatedAt: range,
-  }).select("candidate aiInterview.probes");
+  // `.lean()` throughout — this endpoint only reads and aggregates. `qa` was
+  // selected but never used (topEliminators reads band + criterionFindings only).
+  const [assessments, sessions] = await Promise.all([
+    AtsAssessment.find({ company, createdAt: range }).select("band criterionFindings").lean(),
+    // Claim-verification outcomes joined to normalised skills (Phase 8 verdicts).
+    InterviewSession.find({
+      company,
+      "aiInterview.probes.0": { $exists: true },
+      updatedAt: range,
+    })
+      .select("candidate aiInterview.probes")
+      .lean(),
+  ]);
   const candidateIds = sessions.map((s) => s.candidate);
   const graphs = await ClaimGraph.find({ company, candidate: { $in: candidateIds } })
     .sort({ createdAt: -1 })
-    .select("candidate claims.id claims.normalized.skill");
+    .select("candidate claims.id claims.normalized.skill")
+    .lean();
   const skillByCandidateClaim = new Map();
   for (const g of graphs) {
     for (const c of g.claims) {
@@ -116,15 +142,27 @@ async function getEvidence(req, res) {
 
   // Criteria with no predictive value, across every rubric that has outcomes.
   const rubricIds = await ScoreOutcome.distinct("rubric", { company, rubric: { $ne: null } });
+  const scopedRubricIds = rubricIds.slice(0, 20);
   // Reports links each flagged criterion straight to its job's rubric editor
   // ("worth a look in the rubric editor" is a promise, not just copy) — that
   // needs the owning job, which criterionInsights doesn't carry.
-  const rubricJobs = await RoleRubric.find({ _id: { $in: rubricIds } }).select("job");
+  // criterionInsights fires 3 queries each; run the (≤20) rubrics concurrently
+  // plus the job lookup and the calibration curve — this loop was the dominant
+  // cost of the endpoint when it ran serially (up to 60 round-trips back to back).
+  const [rubricJobs, insightsList, curve] = await Promise.all([
+    RoleRubric.find({ _id: { $in: rubricIds } }).select("job").lean(),
+    Promise.all(
+      scopedRubricIds.map((rubricId) =>
+        calibrationService.criterionInsights(rubricId, company).catch(() => null)
+      )
+    ),
+    CalibrationCurve.findOne({ company }).lean(),
+  ]);
   const jobByRubric = new Map(rubricJobs.map((r) => [String(r._id), String(r.job)]));
   const flaggedCriteria = [];
-  for (const rubricId of rubricIds.slice(0, 20)) {
-    const insights = await calibrationService.criterionInsights(rubricId, company).catch(() => null);
-    if (!insights) continue;
+  scopedRubricIds.forEach((rubricId, i) => {
+    const insights = insightsList[i];
+    if (!insights) return;
     for (const c of insights.criteria) {
       if (c.insight === "no_signal" || c.insight === "inverse") {
         flaggedCriteria.push({
@@ -135,9 +173,7 @@ async function getEvidence(req, res) {
         });
       }
     }
-  }
-
-  const curve = await CalibrationCurve.findOne({ company });
+  });
 
   res.json({
     range: { from, to },
@@ -158,15 +194,19 @@ async function getAuditPack(req, res) {
   const { from, to } = parseRange(req, 365);
   const range = { $gte: from, $lte: to };
 
+  // `criterionFindings` folded into this one scan — it used to be a second,
+  // identical AtsAssessment query (`detailed`) right after, doubling the read.
   const [assessments, reviewItems, rubrics, outcomes] = await Promise.all([
-    AtsAssessment.find({ company, createdAt: range }).select(
-      "band decision mode stage overallScore qa model promptVersions scorerVersion rubricVersion reproducibilityHash createdAt"
-    ),
-    ReviewItem.find({ company, createdAt: range }).select("status reasons resolution label createdAt"),
-    RoleRubric.find({ company, status: { $in: ["approved", "archived"] } }).select(
-      "job version status criteria thresholds approvedBy frozenAt compiledBy"
-    ),
-    ScoreOutcome.find({ company, createdAt: range }).select("score band outcome engine"),
+    AtsAssessment.find({ company, createdAt: range })
+      .select(
+        "band decision mode stage overallScore qa model promptVersions scorerVersion rubricVersion reproducibilityHash createdAt criterionFindings"
+      )
+      .lean(),
+    ReviewItem.find({ company, createdAt: range }).select("status reasons resolution label createdAt").lean(),
+    RoleRubric.find({ company, status: { $in: ["approved", "archived"] } })
+      .select("job version status criteria thresholds approvedBy frozenAt compiledBy")
+      .lean(),
+    ScoreOutcome.find({ company, createdAt: range }).select("score band outcome engine").lean(),
   ]);
 
   const byBand = { advance: 0, review: 0, decline: 0 };
@@ -174,8 +214,7 @@ async function getAuditPack(req, res) {
 
   // Criterion-level pass rates by score band (the audit's core table).
   const criterionByBand = {};
-  const detailed = await AtsAssessment.find({ company, createdAt: range }).select("band criterionFindings");
-  for (const a of detailed) {
+  for (const a of assessments) {
     for (const f of a.criterionFindings || []) {
       const key = f.label;
       criterionByBand[key] = criterionByBand[key] || { advance: { n: 0, satisfied: 0 }, review: { n: 0, satisfied: 0 }, decline: { n: 0, satisfied: 0 } };
@@ -281,13 +320,17 @@ async function getSources(req, res) {
   const { from, to } = parseRange(req, 90);
   const range = { $gte: from, $lte: to };
 
-  const candidates = await Candidate.find({ company, createdAt: range }).select("source ats stageHistory status");
+  const candidates = await Candidate.find({ company, createdAt: range })
+    .select("source ats stageHistory status")
+    .lean();
 
   const sessions = await InterviewSession.find({
     company,
     candidate: { $in: candidates.map((c) => c._id) },
     "aiInterview.probes.0": { $exists: true },
-  }).select("candidate aiInterview.probes");
+  })
+    .select("candidate aiInterview.probes")
+    .lean();
   const probesByCandidate = new Map();
   for (const s of sessions) {
     const assessed = (s.aiInterview?.probes || []).filter((p) => p.status === "assessed");

@@ -1224,6 +1224,11 @@ interviewSessionSchema.index({ status: 1, interviewAt: 1 });
 // constraint and this one briefly disagree on live data.
 interviewSessionSchema.index({ candidate: 1, attempt: 1 }, { unique: true });
 
+// Analytics evidence report scans a tenant's sessions by last-touched time
+// (superset-prefixes the standalone `company` index, which stays for the
+// completedAt count path).
+interviewSessionSchema.index({ company: 1, updatedAt: -1 });
+
 interviewSessionSchema.plugin(require("./plugins/tenantScope"));
 
 module.exports = mongoose.model("InterviewSession", interviewSessionSchema);

@@ -197,6 +197,28 @@ const CLOSED = {
   offer_accepted: { title: "Offer accepted", detail: "Congratulations — the hiring team will be in touch." },
 };
 
+// The application left the pipeline without a recruiter decision because the
+// role itself went away (Phase 17 pipelineExit). Same shape as CLOSED: the
+// process is over, it is owned by nobody, and no candidate action survives it.
+const PIPELINE_EXIT_CLOSED = {
+  hired_for_other_role: {
+    title: "Closed — you were hired for another role",
+    detail: "You accepted an offer elsewhere, so this application was closed.",
+  },
+  job_filled: {
+    title: "Role filled",
+    detail: "This role filled all its openings, so the application was closed. Nothing further is needed.",
+  },
+  job_closed: {
+    title: "Role closed",
+    detail: "The hiring team closed this role, so the application was closed. Nothing further is needed.",
+  },
+  job_deleted: {
+    title: "Role removed",
+    detail: "This role is no longer posted, so the application was closed. Nothing further is needed.",
+  },
+};
+
 // What the company owes, per stage. Naming the specific step is the point: a
 // generic "in review" tells the candidate nothing they did not already know.
 const COMPANY_STEP = {
@@ -237,6 +259,17 @@ function buildNextActions({ applications = [], interviewSessions = [], assessmen
     const key = String(application._id);
     const actions = byApplication.get(key) || [];
     const status = application.status;
+
+    // The role went away: the process is closed regardless of the stage the
+    // application was sitting at. Drop every session action with it — a live
+    // interview or assessment link for a role that no longer exists must not be
+    // offered as "Resume interview" / "Start assessment".
+    const exit = application.pipelineExit;
+    if (exit && (exit.at || exit.reason)) {
+      const spec = PIPELINE_EXIT_CLOSED[exit.reason] || PIPELINE_EXIT_CLOSED.job_deleted;
+      const closed = { kind: "closed", owner: "none", state: "closed", ...spec, at: exit.at || lastMovedAt(application) };
+      return { applicationId: application._id, primary: closed, actions: [] };
+    }
 
     if (CLOSED[status]) {
       const closed = { kind: "closed", owner: "none", state: "closed", ...CLOSED[status], at: lastMovedAt(application) };

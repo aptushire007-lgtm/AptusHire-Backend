@@ -297,6 +297,41 @@ test("a rejection is reported plainly, owed by no one, with no invented reason",
   assert.ok(!/score|match|rank|because|due to/i.test(p.detail), `must not explain the rejection: ${p.detail}`);
 });
 
+test("a role that was removed/filled closes the application and drops every live action", () => {
+  // The candidate had a live interview link, but the role it belonged to was
+  // deleted. The link must not be offered — the process is over.
+  const at = hours(-2);
+  const out = buildNextActions({
+    applications: [application({ status: "interview_scheduled", pipelineExit: { at, reason: "job_deleted" } })],
+    interviewSessions: [
+      { _id: "is1", candidate: "app1", status: "scheduled", interviewAt: hours(1), expiresAt: hours(49) },
+    ],
+    now: NOW,
+  });
+  const entry = out[0];
+  assert.equal(entry.primary.owner, "none");
+  assert.equal(entry.primary.state, "closed");
+  assert.equal(entry.primary.at, at);
+  assert.match(entry.primary.title, /removed/i);
+  assert.deepEqual(entry.actions, [], "no session action survives a role that no longer exists");
+});
+
+test("a filled role closes the application even with no exit timestamp yet", () => {
+  const out = buildNextActions({
+    applications: [application({ status: "assessment_scheduled", pipelineExit: { reason: "job_filled" } })],
+    assessmentSessions: [
+      { _id: "as1", candidate: "app1", status: "scheduled", startDeadline: hours(3), expiresAt: hours(3) },
+    ],
+    now: NOW,
+  });
+  const entry = out[0];
+  assert.equal(entry.primary.owner, "none");
+  assert.equal(entry.primary.state, "closed");
+  assert.match(entry.primary.title, /filled/i);
+  assert.ok(entry.primary.at, "falls back to the last stage change for a date");
+  assert.deepEqual(entry.actions, []);
+});
+
 test("sessions are matched to their own application", () => {
   const out = buildNextActions({
     applications: [application({ _id: "app1" }), application({ _id: "app2", status: "under_review" })],

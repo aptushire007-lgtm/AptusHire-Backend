@@ -18,6 +18,7 @@ const {
   stageLabel,
   appendStageHistory,
   ROUND_STAGES,
+  REJECTED,
 } = require("../utils/pipeline");
 
 // Per-stage notification config. `candidate`/`admin` describe the in-app +
@@ -145,12 +146,26 @@ async function applyTransition(candidate, toStage, { note, actorName, offerMessa
   candidate.status = target;
   appendStageHistory(candidate, target, { note, by: actorName || "system" });
   syncOffer(candidate, target, offerMessage);
+
+  // A recruiter deliberately moving a stage means this candidate is back in
+  // active consideration — clear a fill/close/hire-elsewhere exit. `job_deleted`
+  // is left as-is: there is no role to move them through.
+  if (candidate.pipelineExit?.at && candidate.pipelineExit.reason !== "job_deleted") {
+    candidate.pipelineExit = undefined;
+  }
+
   await candidate.save();
 
   if (target === "rejected") {
     require("./candidateRejectionReportService")
       .generateCandidateRejectionReport(candidate._id, { companyId: candidate.company })
       .catch((err) => console.error(`[pipeline] rejection report failed for candidate ${candidate._id}: ${err.message}`));
+  }
+
+  if (target === "joined") {
+    await closeSiblingApplicationsOnHire(candidate, { actorName }).catch((err) =>
+      console.error(`[pipeline] close-siblings-on-hire failed for candidate ${candidate._id}: ${err.message}`)
+    );
   }
 
   // Keep the two satellite "needs action" caches honest. Review Queue and AI
@@ -172,9 +187,67 @@ async function applyTransition(candidate, toStage, { note, actorName, offerMessa
     .catch(() => {});
 
   await dispatchStageNotifications(candidate, target, note);
+
+  // Vacancy capacity is deliberately isolated from the rest of the pipeline.
+  // Offer emails above remain authoritative; accepted offers below determine
+  // whether the role is fully staffed and should disappear from public boards.
+  const capacityService = require("./jobCapacityService");
+  if (capacityService.affectsCapacity(from, target)) {
+    await capacityService
+      .reconcileJobCapacity(candidate.job?._id || candidate.job, candidate.company, { actorName: actorName || "system" })
+      .catch((err) => console.error(`[capacity] reconcile failed for candidate ${candidate._id}: ${err.message}`));
+  }
   emitStageUpdate(candidate);
 
   return candidate;
+}
+
+// When a person is hired (moves to `joined`) for one role, their OTHER open
+// applications at the SAME company leave the active pipeline (`pipelineExit`,
+// reason "hired_for_other_role") — records kept intact (never deleted, never
+// forced to `rejected`, which would misreport the outcome). Same-company only:
+// another company's applications for this person are untouched (data
+// isolation). Idempotent — applications already terminal or already exited are
+// skipped.
+async function closeSiblingApplicationsOnHire(candidate, { actorName } = {}) {
+  const Candidate = require("../models/Candidate");
+
+  // Identify the person by the stable id when we have one, else the email —
+  // never an $or across both, which could sweep in a different person.
+  const identity = candidate.candidateUser
+    ? { candidateUser: candidate.candidateUser }
+    : { "basicDetails.email": candidate.basicDetails?.email };
+  if (!identity.candidateUser && !identity["basicDetails.email"]) return;
+
+  let jobTitle = "another role";
+  if (candidate.job && candidate.job.title) {
+    jobTitle = candidate.job.title;
+  } else if (candidate.job) {
+    const j = await require("../models/Job").findById(candidate.job._id || candidate.job).select("title");
+    if (j?.title) jobTitle = j.title;
+  }
+
+  const siblings = await Candidate.find({
+    company: candidate.company,
+    _id: { $ne: candidate._id },
+    status: { $nin: ["joined", REJECTED] },
+    "pipelineExit.at": { $exists: false },
+    ...identity,
+  });
+
+  for (const sib of siblings) {
+    sib.pipelineExit = {
+      at: new Date(),
+      reason: "hired_for_other_role",
+      hiredForJob: candidate.job?._id || candidate.job,
+      hiredApplication: candidate._id,
+    };
+    appendStageHistory(sib, sib.status, {
+      note: `Left the pipeline — this candidate accepted an offer for ${jobTitle}.`,
+      by: actorName || "system",
+    });
+    await sib.save();
+  }
 }
 
 // A candidate is only ever "awaiting the AI interview" while parked at
