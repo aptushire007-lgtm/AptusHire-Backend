@@ -13,20 +13,38 @@ function generateInvoiceNumber() {
 
 async function issueInvoiceAndProvision(payment) {
   const existingInvoice = await Invoice.findOne({ payment: payment._id });
-  if (existingInvoice) return existingInvoice;
-
   const company = await Company.findById(payment.company);
   const plan = await SubscriptionPlan.findById(payment.subscriptionPlan);
 
-  const invoice = await Invoice.create({
-    company: company._id,
-    payment: payment._id,
-    invoiceNumber: generateInvoiceNumber(),
-    amount: payment.amount,
-    currency: payment.currency,
-    billingCycle: payment.billingCycle,
-    planName: plan.name,
-  });
+  if (existingInvoice) {
+    // Invoice creation is the idempotency marker, but it must not prevent a
+    // retry from completing provisioning after a prior attempt failed later.
+    if (company.status !== "active") {
+      await provisionWorkspace({ company, plan, billingCycle: payment.billingCycle });
+    }
+    return existingInvoice;
+  }
+
+  let invoice;
+  try {
+    invoice = await Invoice.create({
+      company: company._id,
+      payment: payment._id,
+      invoiceNumber: generateInvoiceNumber(),
+      amount: payment.amount,
+      currency: payment.currency,
+      billingCycle: payment.billingCycle,
+      planName: plan.name,
+    });
+  } catch (err) {
+    if (err?.code !== 11000) throw err;
+    invoice = await Invoice.findOne({ payment: payment._id });
+    if (!invoice) throw err;
+    if (company.status !== "active") {
+      await provisionWorkspace({ company, plan, billingCycle: payment.billingCycle });
+    }
+    return invoice;
+  }
 
   await notifyAdmin({
     companyId: company._id,
@@ -106,7 +124,7 @@ async function verifyPayment(req, res) {
     return res.status(400).json({ error: "razorpay_order_id, razorpay_payment_id, and razorpay_signature are required" });
   }
 
-  const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id });
+  const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id, company: req.user.company });
   if (!payment) return res.status(404).json({ error: "Payment record not found" });
 
   const valid = razorpayService.verifyPaymentSignature({
@@ -129,7 +147,9 @@ async function verifyPayment(req, res) {
 
   const invoice = await issueInvoiceAndProvision(payment);
 
-  res.json({ message: "Payment verified and workspace activated", payment, invoice });
+  const safePayment = payment.toObject();
+  delete safePayment.razorpaySignature;
+  res.json({ message: "Payment verified and workspace activated", payment: safePayment, invoice });
 }
 
 async function webhook(req, res) {
@@ -146,10 +166,12 @@ async function webhook(req, res) {
   const payment = await Payment.findOne({ razorpayOrderId: paymentEntity.order_id });
   if (!payment) return res.status(200).json({ received: true });
 
-  if (event === "payment.captured" && payment.status !== "paid") {
-    payment.status = "paid";
-    payment.razorpayPaymentId = paymentEntity.id;
-    await payment.save();
+  if (event === "payment.captured") {
+    if (payment.status !== "paid") {
+      payment.status = "paid";
+      payment.razorpayPaymentId = paymentEntity.id;
+      await payment.save();
+    }
     await issueInvoiceAndProvision(payment);
   } else if (event === "payment.failed" && payment.status === "created") {
     payment.status = "failed";

@@ -15,6 +15,7 @@
     "seed:demo": "node scripts/seedDemoAccounts.js",
     "check:env": "node scripts/checkEnv.js",
     "check:storage": "node scripts/checkStorage.js",
+    "audit:cloudinary-legacy": "node scripts/auditCloudinaryLegacy.js",
     "check:mail": "node scripts/checkMail.js",
     "recover": "node scripts/accountRecovery.js",
     "test": "node --test \"test/unit/*.test.js\"",

@@ -1,5 +1,6 @@
 const Notification = require("../models/Notification");
 const Candidate = require("../models/Candidate");
+const { getJson, setJson, deleteKey } = require("../services/redisCache");
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -11,7 +12,7 @@ function escapeRegex(str) {
 // same email before ever registering an account. This mirrors the lookup
 // already used in candidateDashboardController.getDashboard().
 async function ownedCandidateIds(user) {
-  const applications = await Candidate.find({ "basicDetails.email": user.email }).select("_id");
+  const applications = await Candidate.find({ "basicDetails.email": user.email }).select("_id").lean();
   return applications.map((a) => a._id);
 }
 
@@ -48,9 +49,14 @@ async function listMine(req, res) {
 }
 
 async function unreadCount(req, res) {
+  const cacheKey = `candidate-notifications:unread:${String(req.user._id)}`;
+  const cached = await getJson(cacheKey);
+  if (cached) return res.json(cached);
   const candidateIds = await ownedCandidateIds(req.user);
   const count = await Notification.countDocuments({ ...ownershipFilter(req.user, candidateIds), read: false });
-  res.json({ count });
+  const payload = { count };
+  await setJson(cacheKey, payload, 15);
+  res.json(payload);
 }
 
 async function markRead(req, res) {
@@ -61,12 +67,14 @@ async function markRead(req, res) {
     { new: true }
   );
   if (!notification) return res.status(404).json({ error: "Notification not found" });
+  await deleteKey(`candidate-notifications:unread:${String(req.user._id)}`);
   res.json(notification);
 }
 
 async function markAllRead(req, res) {
   const candidateIds = await ownedCandidateIds(req.user);
   await Notification.updateMany({ ...ownershipFilter(req.user, candidateIds), read: false }, { read: true });
+  await deleteKey(`candidate-notifications:unread:${String(req.user._id)}`);
   res.json({ message: "All notifications marked as read" });
 }
 
@@ -74,6 +82,7 @@ async function remove(req, res) {
   const candidateIds = await ownedCandidateIds(req.user);
   const notification = await Notification.findOneAndDelete({ _id: req.params.id, ...ownershipFilter(req.user, candidateIds) });
   if (!notification) return res.status(404).json({ error: "Notification not found" });
+  await deleteKey(`candidate-notifications:unread:${String(req.user._id)}`);
   res.json({ message: "Notification deleted" });
 }
 

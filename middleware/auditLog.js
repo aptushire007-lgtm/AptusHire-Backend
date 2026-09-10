@@ -11,6 +11,13 @@ function truncate(str, max) {
   return str.length > max ? str.slice(0, max) : str;
 }
 
+function safePath(value) {
+  return String(value || "").replace(
+    /\/interview-sessions\/verify\/[^/?#]+/gi,
+    "/interview-sessions/verify/[redacted]"
+  );
+}
+
 // Fire-and-forget write. Must NEVER throw into the request path or reject a request —
 // a failed audit write is logged and swallowed. Runs outside any tenant context so the
 // tenantScope plugin can't interfere (AuditLog isn't tenant-scoped anyway).
@@ -34,7 +41,7 @@ function writeAuditLog({ req, action, company, resourceType, resourceId, statusC
       actorEmail: user?.email,
       action,
       method: req?.method,
-      path: req ? truncate(req.originalUrl || req.url, 512) : undefined,
+      path: req ? truncate(safePath(req.originalUrl || req.url), 512) : undefined,
       resourceType,
       resourceId: resourceId != null ? String(resourceId) : undefined,
       statusCode,
