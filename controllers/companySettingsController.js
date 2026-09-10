@@ -1,4 +1,5 @@
 const CompanySettings = require("../models/CompanySettings");
+const careersService = require("../services/careersService");
 
 // Per-tenant settings a company admin can self-serve (AI interview config, DPDP/compliance
 // controls, DPO contact, branding, notification + email prefs). Everything here is scoped to
@@ -147,6 +148,7 @@ async function updateSettings(req, res) {
   }
 
   await settings.save();
+  if (changed.some((path) => path.startsWith("branding."))) careersService.cacheClear();
 
   // Enrich the audit trail — compliance/retention/DPO changes are security-relevant. The global
   // auditLog middleware records the mutation; this names it and captures which fields changed.
