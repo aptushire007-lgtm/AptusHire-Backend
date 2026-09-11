@@ -21,7 +21,7 @@ const { pathToFileURL } = require("node:url");
 const server = require("../../utils/echoAlignment");
 
 const BROWSER_MODULE = pathToFileURL(
-  path.join(__dirname, "..", "..", "..", "user", "src", "portal", "echoAlignment.js")
+  path.join(__dirname, "..", "..", "..", "AptusHire-Frontend", "src", "portal", "echoAlignment.js")
 ).href;
 
 // Spoken utterances the interviewer really makes: a compiled question, a bank backchannel, and a

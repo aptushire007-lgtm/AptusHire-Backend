@@ -1,11 +1,15 @@
 const Job = require("../models/Job");
 const Candidate = require("../models/Candidate");
+const mongoose = require("mongoose");
 const { generateJobSlug } = require("../utils/slug");
 const rubricService = require("../services/rubricService");
 const { sourceHashOf } = require("../utils/rubricEngine");
 const capacityService = require("../services/jobCapacityService");
+const readinessService = require("../services/jobReadinessService");
+const { problem } = require("../utils/setupDraft");
 
 const RECRUITER_ONLY_JOB_FIELDS = [
+  "setupDraft",
   "numberOfOpenings",
   "filledOpenings",
   "pendingOffers",
@@ -30,6 +34,10 @@ async function createJob(req, res) {
 
   const {
     slug,
+    status,
+    setupDraft,
+    _id,
+    __v,
     filledOpenings,
     pendingOffers,
     autoClosedAt,
@@ -37,7 +45,7 @@ async function createJob(req, res) {
     ...body
   } = req.body;
   body.numberOfOpenings = capacityService.validateNumberOfOpenings(body.numberOfOpenings ?? 1);
-  const job = await Job.create({ ...body, company: req.user.company, slug: generateJobSlug(body.title) });
+  const job = await Job.create({ ...body, company: req.user.company, slug: generateJobSlug(body.title), status: "draft" });
 
   // Compile a draft rubric the moment the JD exists — nothing else in the product
   // prompts a recruiter to visit the Scoring Rubric screen, so without this a job
@@ -73,11 +81,49 @@ async function listJobs(req, res) {
     and.push({ $or: [{ title: pattern }, { department: pattern }, { location: pattern }] });
   }
 
+  const pageNum = Math.max(1, Number(page) || 1);
+  const limitNum = Math.min(100, Math.max(1, Number(limit) || 20));
+
+  // If pagination is requested and no rubricStatus filter is applied, bound the query at DB level.
+  if (wantsPagination && !rubricStatus) {
+    const total = await Job.countDocuments({ $and: and });
+    const totalPages = Math.max(1, Math.ceil(total / limitNum));
+    const jobs = await Job.find({ $and: and })
+      .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean();
+
+    const statusByJob = await rubricService.latestStatusesForJobs(
+      jobs.map((j) => j._id),
+      req.user.company
+    );
+    let items = jobs.map((j) => ({
+      ...j,
+      rubricStatus: statusByJob.get(String(j._id)) || "none",
+    }));
+
+    if (req.query.includeCounts === "1" && items.length) {
+      const counts = await Candidate.aggregate([
+        { $match: { company: new mongoose.Types.ObjectId(String(req.user.company)), job: { $in: items.map((job) => job._id) } } },
+        { $group: { _id: { job: "$job", stage: "$status" }, count: { $sum: 1 } } },
+      ]);
+      const byJob = new Map();
+      for (const row of counts) {
+        const key = String(row._id.job);
+        if (!byJob.has(key)) byJob.set(key, { total: 0, stages: {} });
+        const value = byJob.get(key);
+        value.total += row.count;
+        value.stages[row._id.stage] = row.count;
+      }
+      items = items.map((job) => ({ ...job, applicationCounts: byJob.get(String(job._id)) || { total: 0, stages: {} } }));
+    }
+
+    return res.json({ items, total, page: pageNum, limit: limitNum, totalPages });
+  }
+
+  // Fallback path when rubricStatus filter is used or legacy unpaged callers
   const jobs = await Job.find({ $and: and }).sort({ createdAt: -1 }).lean();
-  // Every job the recruiter sees carries its rubric-approval state, so an
-  // unapproved rubric (⇒ candidates silently fall back to the legacy keyword
-  // engine, see evidenceAtsService.js) is visible on the jobs list itself
-  // instead of only discoverable candidate-by-candidate.
   const statusByJob = await rubricService.latestStatusesForJobs(
     jobs.map((j) => j._id),
     req.user.company
@@ -86,6 +132,22 @@ async function listJobs(req, res) {
     ...j,
     rubricStatus: statusByJob.get(String(j._id)) || "none",
   }));
+  if (req.query.includeCounts === "1" && jobs.length) {
+    const counts = await Candidate.aggregate([
+      { $match: { company: new mongoose.Types.ObjectId(String(req.user.company)), job: { $in: jobs.map((job) => job._id) } } },
+      { $group: { _id: { job: "$job", stage: "$status" }, count: { $sum: 1 } } },
+    ]);
+    const byJob = new Map();
+    for (const row of counts) {
+      const key = String(row._id.job);
+      if (!byJob.has(key)) byJob.set(key, { total: 0, stages: {} });
+      const value = byJob.get(key);
+      value.total += row.count;
+      value.stages[row._id.stage] = row.count;
+    }
+    withRubricStatus = withRubricStatus.map((job) => ({ ...job, applicationCounts: byJob.get(String(job._id)) || { total: 0, stages: {} } }));
+  }
+
   if (rubricStatus) {
     withRubricStatus = withRubricStatus.filter((j) => j.rubricStatus === rubricStatus);
   }
@@ -94,11 +156,9 @@ async function listJobs(req, res) {
     return res.json(withRubricStatus);
   }
 
-  const pageNum = Math.max(1, Number(page) || 1);
-  const limitNum = Math.min(100, Math.max(1, Number(limit) || 20));
   const total = withRubricStatus.length;
   const items = withRubricStatus.slice((pageNum - 1) * limitNum, pageNum * limitNum);
-  res.json({ items, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) || 1 });
+  return res.json({ items, total, page: pageNum, limit: limitNum, totalPages: Math.max(1, Math.ceil(total / limitNum)) });
 }
 
 async function listPublishedJobs(req, res) {
@@ -127,6 +187,10 @@ async function getJob(req, res) {
   // owning admin — public candidate-portal callers never see it.
   if (isOwningAdmin) {
     payload.rubricStatus = await rubricService.latestStatusForJob(job._id, req.user.company);
+    if (job.setupDraft) {
+      const setup = await require("../models/SetupDraft").findOne({ _id: job.setupDraft, company: req.user.company, owner: req.user._id }).select("_id").lean();
+      if (setup) payload.setupDraftId = String(setup._id);
+    }
   } else {
     for (const field of RECRUITER_ONLY_JOB_FIELDS) delete payload[field];
   }
@@ -155,6 +219,10 @@ async function getJob(req, res) {
 async function updateJob(req, res) {
   const {
     company,
+    setupDraft,
+    _id,
+    __v,
+    revision,
     filledOpenings,
     pendingOffers,
     autoClosedAt,
@@ -166,6 +234,8 @@ async function updateJob(req, res) {
   }
   const job = await Job.findOne({ _id: req.params.id, company: req.user.company });
   if (!job) return res.status(404).json({ error: "Job not found" });
+  if (revision !== undefined && revision !== (job.__v || 0)) throw problem(409, "This job changed in another tab. Reload the latest job before saving your changes.", "JOB_CONFLICT");
+  if (updates.status === "published" && job.status !== "published") throw problem(409, "Use the publication review action to publish this role.", "PUBLICATION_REVIEW_REQUIRED");
 
   // If the edit changed the JD content, any existing rubric is now compiled from
   // stale text — supersede() drafts a new version (the old approved one stays
@@ -218,6 +288,7 @@ async function updateJob(req, res) {
 async function publishJob(req, res) {
   const job = await Job.findOne({ _id: req.params.id, company: req.user.company });
   if (!job) return res.status(404).json({ error: "Job not found" });
+  await readinessService.assertPublishable(job, req.user.company);
 
   // §1.4: a job cannot go live without an approved rubric. Every candidate who applies to a job
   // with no approved rubric falls back to the legacy keyword engine (evidenceAtsService.js
@@ -333,6 +404,8 @@ async function listPublications(req, res) {
 async function publishBoards(req, res) {
   const job = await Job.findOne({ _id: req.params.id, company: req.user.company });
   if (!job) return res.status(404).json({ error: "Job not found" });
+  if (job.status !== "published") throw problem(409, "Publish the reviewed job to your careers page before distributing it to job boards.", "CAREERS_PUBLICATION_REQUIRED");
+  await readinessService.assertPublishable(job, req.user.company);
   if (job.status !== "published") {
     return res.status(400).json({ error: "Publish the job in the ATS first — boards only receive published jobs" });
   }

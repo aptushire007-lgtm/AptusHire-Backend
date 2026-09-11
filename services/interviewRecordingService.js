@@ -28,6 +28,7 @@
 //     candidate; no evaluation path reads any field this file writes.
 
 const storageService = require("./storageService");
+const r2RecordingStorage = require("./r2RecordingStorage");
 
 // One timeslice of video (see user/src/portal/useSessionRecorder.js: 45s at ~200 kbps
 // ≈ 1.1MB). The cap is ~13× the expected size so a burst of motion, a high-DPI camera or a
@@ -232,9 +233,50 @@ async function finalize({ session, durationMs }) {
 // chunks exist, but there is no single file to play and pretending otherwise would hand the
 // reviewer a broken player instead of an explanation.
 async function playbackUrl(session) {
+  return (await playbackDetails(session)).url;
+}
+
+function canPlay(session) {
   const ai = session?.aiInterview;
-  if (ai?.recordingStatus !== "completed" || !ai.recordingKey) return null;
-  return storageService.getSignedDownloadUrl(ai.recordingKey, { expiresInSeconds: 900 });
+  if (!ai?.recordingKey) return false;
+  return ai.recordingStatus === "completed" ||
+    (r2RecordingStorage.isR2Recording(ai) && (ai.recordingSource === "egress" || ai.egressId) && ["recording", "pending"].includes(ai.recordingStatus));
+}
+
+function needsRecovery(session) {
+  const ai = session?.aiInterview;
+  return Boolean(ai?.egressId && !ai.recordingKey);
+}
+
+async function playbackOptions(session) {
+  if (!needsRecovery(session)) return [];
+  return (await r2RecordingStorage.filesForSession(session)).map(({ id, recordedAt }) => ({ id, recordedAt }));
+}
+
+async function playbackDetails(session, fileId) {
+  if (needsRecovery(session)) {
+    const files = await r2RecordingStorage.filesForSession(session);
+    const selected = fileId ? files.find(file => file.id === fileId) : files.length === 1 ? files[0] : null;
+    if (!selected) throw Object.assign(new Error("Choose a recording file for this interview."), { status: files.length ? 409 : 404 });
+    return r2RecordingStorage.playback(selected.key);
+  }
+  if (!canPlay(session)) return { url: null };
+  const ai = session.aiInterview;
+  if (r2RecordingStorage.isR2Recording(ai)) return r2RecordingStorage.playback(ai.recordingKey);
+  return { url: await storageService.getSignedDownloadUrl(ai.recordingKey, { expiresInSeconds: 900 }) };
+}
+
+async function storedKeysForDeletion(session) {
+  const keys = storedKeys(session);
+  if (needsRecovery(session)) keys.push(...(await r2RecordingStorage.filesForSession(session)).map(file => file.key));
+  return [...new Set(keys)];
+}
+
+async function deleteStoredObject(session, key) {
+  if (r2RecordingStorage.isR2Recording({ ...session.aiInterview, recordingKey: key })) {
+    return r2RecordingStorage.deleteRecording(key);
+  }
+  return storageService.deleteObject(key);
 }
 
 // Every stored object this service can produce, for one session — the stitched file AND any
@@ -259,5 +301,10 @@ module.exports = {
   storeChunk,
   finalize,
   playbackUrl,
+  playbackDetails,
+  canPlay,
+  playbackOptions,
+  storedKeysForDeletion,
+  deleteStoredObject,
   storedKeys,
 };

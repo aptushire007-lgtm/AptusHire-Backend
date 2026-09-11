@@ -35,7 +35,7 @@ async function purgeCandidateArtifacts(candidate) {
   const scope = { company: companyId, candidate: candidate._id };
 
   const sessions = await InterviewSession.find(scope).select(
-    "identityVerification aiInterview.turns aiInterview.recordingKey aiInterview.recordingChunks"
+    "company identityVerification aiInterview.turns aiInterview.recordingKey aiInterview.recordingChunks aiInterview.recordingSource aiInterview.egressId"
   );
   let recordingObjects = 0;
   for (const session of sessions) {
@@ -52,8 +52,15 @@ async function purgeCandidateArtifacts(candidate) {
     // the single source of truth for "everything we hold about a candidate"; a video of them is
     // the largest thing on that list. Covers both producers: the stitched file and any chunks a
     // partial or interrupted session left behind.
-    for (const key of interviewRecordingService.storedKeys(session)) {
-      await deleteObjectSafe(key, "interview-recording");
+    let recordingKeys = interviewRecordingService.storedKeys(session);
+    try { recordingKeys = await interviewRecordingService.storedKeysForDeletion(session); }
+    catch (err) { console.error("[candidatePurge] failed to locate historical recordings:", err.message); }
+    for (const key of recordingKeys) {
+      try {
+        await interviewRecordingService.deleteStoredObject(session, key);
+      } catch (err) {
+        console.error("[candidatePurge] failed to delete interview recording:", err.message);
+      }
       recordingObjects += 1;
     }
   }

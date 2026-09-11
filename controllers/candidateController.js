@@ -402,8 +402,10 @@ async function runPostApplyPipeline(candidate, job) {
 // callers get { items, total, page, pages, limit }.
 function parsePagination(req, { defaultLimit = 50, maxLimit = 200, legacyCap = 500 } = {}) {
   const wantsPagination = req.query.page !== undefined || req.query.limit !== undefined;
-  const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(maxLimit, Math.max(1, Number(req.query.limit) || defaultLimit));
+  const requestedPage = Number(req.query.page);
+  const requestedLimit = Number(req.query.limit);
+  const page = Number.isFinite(requestedPage) ? Math.min(1000000, Math.max(1, Math.floor(requestedPage))) : 1;
+  const limit = Number.isFinite(requestedLimit) && requestedLimit > 0 ? Math.min(maxLimit, Math.max(1, Math.floor(requestedLimit))) : defaultLimit;
   return { wantsPagination, page, limit, legacyCap };
 }
 
@@ -416,6 +418,11 @@ async function listCandidatesForJob(req, res) {
     return res.status(404).json({ error: "Job not found" });
   }
   const filter = { job: req.params.id, company: req.user.company };
+  if (req.query.stage && req.query.stage !== "all") filter.status = String(req.query.stage);
+  if (req.query.q) {
+    const query = String(req.query.q).trim().slice(0, 120).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter.$or = [{ "basicDetails.name": { $regex: query, $options: "i" } }, { "basicDetails.email": { $regex: query, $options: "i" } }];
+  }
   const { wantsPagination, page, limit, legacyCap } = parsePagination(req);
   if (!wantsPagination) {
     return res.json(await Candidate.find(filter).sort({ createdAt: -1 }).limit(legacyCap));
@@ -438,7 +445,25 @@ async function listCandidatesForJob(req, res) {
 async function listCandidates(req, res) {
   const filter = { company: req.user.company };
   if (req.query.jobId && mongoose.Types.ObjectId.isValid(req.query.jobId)) filter.job = req.query.jobId;
-  if (req.query.stage) filter.status = req.query.stage;
+  if (req.query.stage && req.query.stage !== "all") {
+    const stage = String(req.query.stage);
+    filter.status = stage === "shortlisted" ? { $in: [stage, "next_round"] } : stage === "interview_scheduled" ? { $in: [stage, "interview_queue"] } : stage;
+  }
+  if (req.query.q) {
+    const query = String(req.query.q).trim().slice(0, 120).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter.$or = [{ "basicDetails.name": { $regex: query, $options: "i" } }, { "basicDetails.email": { $regex: query, $options: "i" } }];
+  }
+  if (req.query.reached) {
+    const reached = String(req.query.reached);
+    const stages = reached === "shortlisted" ? [reached, "next_round"] : reached === "interview_scheduled" ? [reached, "interview_queue"] : [reached];
+    filter["stageHistory.stage"] = { $in: stages };
+  }
+  for (const [key, operator] of [["from", "$gte"], ["to", "$lte"]]) {
+    if (!req.query[key]) continue;
+    const date = new Date(String(req.query[key]));
+    if (!Number.isFinite(date.getTime())) return res.status(400).json({ error: "Invalid report date filter" });
+    filter.createdAt = { ...filter.createdAt, [operator]: date };
+  }
   const { page, limit } = parsePagination(req, { defaultLimit: 200, maxLimit: 500 });
 
   if (req.query.groupBy === "candidate") {
@@ -446,7 +471,7 @@ async function listCandidates(req, res) {
   }
 
   const [items, total] = await Promise.all([
-    Candidate.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).populate("job", "title department status"),
+    Candidate.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit).populate("job", "title department status"),
     Candidate.countDocuments(filter),
   ]);
   res.json({ items, total, page, pages: Math.ceil(total / limit), limit });
@@ -455,17 +480,18 @@ async function listCandidates(req, res) {
 // Aggregation for `?groupBy=candidate`. The tenant-scope plugin injects
 // `{ company }` into find()/countDocuments() but NOT aggregate(), so `company`
 // is matched explicitly here. Group key is the stable `candidateUser` when set,
-// falling back to the lowercased email for legacy rows that predate it — so one
-// person is never split across two rows.
+// falling back to the application ID. Shared or absent email addresses never
+// merge unlinked applications automatically.
 async function listCandidatesGrouped(req, filter, page, limit) {
-  const match = { company: new mongoose.Types.ObjectId(String(req.user.company)) };
+  const match = { ...filter, company: new mongoose.Types.ObjectId(String(req.user.company)) };
   if (filter.job) match.job = new mongoose.Types.ObjectId(String(filter.job));
   if (filter.status) match.status = filter.status;
 
-  const groupKey = { $ifNull: ["$candidateUser", "$basicDetails.email"] };
+  // Email is a contact hint, not proof of identity. Unlinked applications stay separate.
+  const groupKey = { $ifNull: ["$candidateUser", "$_id"] };
   const pipeline = [
     { $match: match },
-    { $sort: { createdAt: -1 } },
+    { $sort: { createdAt: -1, _id: -1 } },
     {
       $group: {
         _id: groupKey,
@@ -474,6 +500,7 @@ async function listCandidatesGrouped(req, filter, page, limit) {
         email: { $first: "$basicDetails.email" },
         applicationCount: { $sum: 1 },
         latestApplicationAt: { $max: "$createdAt" },
+        latestAts: { $first: "$ats" },
         applications: {
           $push: {
             _id: "$_id",
@@ -485,13 +512,16 @@ async function listCandidatesGrouped(req, filter, page, limit) {
         },
       },
     },
-    { $sort: { latestApplicationAt: -1 } },
+    { $sort: { latestApplicationAt: -1, _id: -1 } },
     {
       $facet: {
         rows: [
           { $skip: (page - 1) * limit },
           { $limit: limit },
-          { $lookup: { from: "jobs", localField: "applications.job", foreignField: "_id", as: "_jobs" } },
+          { $lookup: { from: "jobs", let: { ids: "$applications.job" }, pipeline: [
+            { $match: { company: match.company, $expr: { $in: ["$_id", "$$ids"] } } },
+            { $project: { title: 1, department: 1, status: 1 } },
+          ], as: "_jobs" } },
         ],
         meta: [{ $count: "total" }],
       },
@@ -520,6 +550,7 @@ async function listCandidatesGrouped(req, filter, page, limit) {
       email: row.email,
       applicationCount: row.applicationCount,
       latestApplication: applications[0] || null,
+      latestAts: row.latestAts || null,
       applications,
     };
   });
@@ -537,6 +568,9 @@ async function relatedApplications(req, res) {
   const anchor = await Candidate.findOne({ _id: req.params.id, company: req.user.company })
     .select("candidateUser basicDetails.email");
   if (!anchor) return res.status(404).json({ error: "Candidate not found" });
+  if (!anchor.candidateUser && !anchor.basicDetails?.email?.trim()) {
+    return res.json({ count: 0, identityBasis: "unavailable", applications: [] });
+  }
 
   // Match on the stable id when we have one, otherwise the email — never both as
   // an $or that could pull in a different person who happens to share neither.
@@ -555,6 +589,7 @@ async function relatedApplications(req, res) {
 
   res.json({
     count: siblings.length,
+    identityBasis: anchor.candidateUser ? "account" : "shared_email",
     applications: siblings.map((s) => ({
       _id: s._id,
       job: s.job,
@@ -870,7 +905,9 @@ async function buildInterviewReport(candidateId, companyId, { attempt } = {}) {
     hasInterview: true,
     attempts,
     interview: {
+      sessionId: String(session._id),
       attempt: session.attempt,
+      recruiterReview: require("../utils/interviewReview").reviewState(session),
       status: ai.status,
       engine: ai.engine,
       modality: ai.modality || "text",
@@ -1220,7 +1257,7 @@ function buildProctoringSummary(p, { technicalFault = false } = {}) {
 async function getInterviewReport(req, res) {
   const report = await buildInterviewReport(req.params.id, req.user.company, { attempt: req.query.attempt });
   if (!report) return res.status(404).json({ error: "Candidate not found" });
-  res.json(report);
+  res.json(require("../utils/reportPresentation").reviewReport(report));
 }
 
 // Streams the same report as a downloadable PDF.
@@ -1229,7 +1266,7 @@ async function getInterviewReportPdf(req, res) {
   if (!report) return res.status(404).json({ error: "Candidate not found" });
 
   const { buildReportPdf } = require("../services/interviewReportPdf");
-  const pdf = buildReportPdf(report);
+  const pdf = buildReportPdf(require("../utils/reportPresentation").reviewReport(report));
 
   const safeName = String(report.candidate?.name || "candidate").replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase() || "candidate";
   res.setHeader("Content-Type", "application/pdf");

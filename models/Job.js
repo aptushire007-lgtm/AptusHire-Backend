@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const jobSchema = new mongoose.Schema(
   {
     company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", required: true },
+    setupDraft: { type: mongoose.Schema.Types.ObjectId, ref: "SetupDraft", index: true },
     title: { type: String, required: true, trim: true },
     slug: { type: String, unique: true, sparse: true, index: true },
     department: { type: String, trim: true },
@@ -43,7 +44,7 @@ const jobSchema = new mongoose.Schema(
     assessmentValidityHours: { type: Number, min: 1, max: 720 },     // link validity (default env, 72h)
     assessmentStartDeadlineHours: { type: Number, min: 1, max: 720 }, // must START within this (default = validity)
   },
-  { timestamps: true }
+  { timestamps: true, optimisticConcurrency: true }
 );
 
 jobSchema.statics.findByIdOrSlug = function (idOrSlug) {

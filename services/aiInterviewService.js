@@ -2538,6 +2538,12 @@ async function handleWithdraw(session, opts) {
   session.completedAt = new Date();
   await session.save();
 
+  // A withdrawn interview is terminal. Best-effort room cleanup prevents the
+  // realtime worker from remaining alive and metered after the browser leaves.
+  await livekit
+    .deleteRoom(session)
+    .catch((err) => console.error(`[aiInterview] room delete failed for ${session._id}:`, err.message));
+
   console.warn(
     `[aiInterview] session ${session._id} ended early by the candidate after ${stats.asked} question(s) ` +
       `(${stats.answered} answered, ${stats.declined} declined, confirmedBy=${confirmedBy})`
