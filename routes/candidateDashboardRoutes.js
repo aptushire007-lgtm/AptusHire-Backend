@@ -7,6 +7,7 @@ const {
   getOwnAssessmentResult,
   getOwnRejectionReport,
   toggleSavedJob,
+  dismissRecommendedJob,
   openOwnSession,
   resendOwnSessionLink,
 } = require("../controllers/candidateDashboardController");
@@ -60,6 +61,7 @@ router.get("/applications/:id", requireCandidate, getOwnApplication);
 router.get("/assessments/:id/result", requireCandidate, getOwnAssessmentResult);
 router.get("/applications/:id/rejection-report", requireCandidate, getOwnRejectionReport);
 router.post("/saved-jobs/:jobId", requireCandidate, toggleSavedJob);
+router.post("/recommended-jobs/:jobId/dismiss", requireCandidate, dismissRecommendedJob);
 router.post("/sessions/:kind/:id/open", requireCandidate, openLimiter, openOwnSession);
 router.post("/sessions/:kind/:id/resend", requireCandidate, resendLimiter, resendOwnSessionLink);
 

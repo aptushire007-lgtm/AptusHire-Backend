@@ -81,7 +81,7 @@ async function getDashboard(req, res) {
   // candidate/job while still making relevance the primary ordering signal.
   const recommendationPool = await Job.find({
     status: "published",
-    _id: { $nin: [...appliedJobIds, ...profile.savedJobs] },
+    _id: { $nin: [...appliedJobIds, ...profile.savedJobs, ...(profile.dismissedJobs || [])] },
   })
     .select("-numberOfOpenings -filledOpenings -pendingOffers -autoClosedAt -closureReason")
     .populate("company", "name")
@@ -309,6 +309,25 @@ async function toggleSavedJob(req, res) {
   res.json({ saved: index < 0, savedJobs: profile.savedJobs });
 }
 
+async function dismissRecommendedJob(req, res) {
+  const { jobId } = req.params;
+  const job = await Job.findById(jobId).lean();
+  if (!job) return res.status(404).json({ error: "Job not found" });
+
+  const profile = await getOrCreateProfile(req.user._id);
+
+  // Idempotent: only add if not already dismissed
+  const alreadyDismissed = (profile.dismissedJobs || []).some(
+    (id) => String(id) === String(jobId),
+  );
+  if (!alreadyDismissed) {
+    profile.dismissedJobs = [...(profile.dismissedJobs || []), jobId];
+    await profile.save();
+  }
+
+  res.json({ dismissed: true });
+}
+
 // Locate an interview/assessment session that belongs to the authenticated
 // account, with its candidate and job populated. Shared by every candidate-side
 // session route so the ownership rule has exactly one implementation.
@@ -477,6 +496,7 @@ module.exports = {
   getOwnAssessmentResult,
   getOwnRejectionReport,
   toggleSavedJob,
+  dismissRecommendedJob,
   openOwnSession,
   resendOwnSessionLink,
   initializeDashboard,
