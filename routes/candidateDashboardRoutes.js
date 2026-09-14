@@ -20,6 +20,7 @@ const {
   archiveResumeVersion,
   deleteResumeVersion,
   getMatchScoresForJob,
+  downloadResumeVersion,
 } = require("../controllers/resumeVersionController");
 const {
   getFullProfile,
@@ -90,6 +91,7 @@ router.patch("/resumes/:id", requireCandidate, updateResumeVersion);
 router.patch("/resumes/:id/default", requireCandidate, setDefaultResumeVersion);
 router.patch("/resumes/:id/archive", requireCandidate, archiveResumeVersion);
 router.delete("/resumes/:id", requireCandidate, deleteResumeVersion);
+router.get("/resumes/:id/download", requireCandidate, downloadResumeVersion);
 router.get("/jobs/:jobId/match-versions", requireCandidate, getMatchScoresForJob);
 
 // ---- 6-Tab Profile & Trust Verification Engine ----

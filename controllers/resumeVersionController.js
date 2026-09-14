@@ -296,6 +296,12 @@ async function getMatchScoresForJob(req, res) {
   res.json(payload);
 }
 
+async function downloadResumeVersion(req, res) {
+  const version = await ResumeVersion.findOne({ _id: req.params.id, user: req.user._id, isArchived: false });
+  if (!version) return res.status(404).json({ error: "Resume version not found" });
+  await storageService.sendDownload(res, version.filePath, version.label, version.mimeType);
+}
+
 module.exports = {
   listResumeVersions,
   uploadResumeVersion,
@@ -304,4 +310,5 @@ module.exports = {
   archiveResumeVersion,
   deleteResumeVersion,
   getMatchScoresForJob,
+  downloadResumeVersion,
 };
