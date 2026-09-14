@@ -32,7 +32,8 @@ const list = endpoint(async (req, res) => {
   const limit = 12;
   const filter = service.scope(req.user);
   const [items, total] = await Promise.all([SetupDraft.find(filter).sort({ updatedAt: -1, _id: -1 }).skip((page - 1) * limit).limit(limit).select("values.title job state currentStep updatedAt revision").populate("job", "title status").lean(), SetupDraft.countDocuments(filter)]);
-  res.json({ items, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) });
+  const validItems = items.filter((d) => !(d.state === "linked" && !d.job));
+  res.json({ items: validItems, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) });
 });
 const create = endpoint(async (req, res) => {
   const draft = await service.create(req.user, req.body);
@@ -79,4 +80,9 @@ const reviewJobJourney = endpoint(async (req, res) => {
   req.audit = { action: "setup.journey_reviewed", resourceType: "Job", resourceId: job._id, meta: { fingerprint: current.fingerprint } };
   res.json(await readinessService.get(job, req.user.company));
 });
-module.exports = { list, create, read, save, materialize, reviewJourney, reviewJobJourney, readiness, endpoint };
+const remove = endpoint(async (req, res) => {
+  await service.remove(req.user, req.params.draftId);
+  req.audit = { action: "setup.discarded", resourceType: "SetupDraft", resourceId: req.params.draftId };
+  res.status(204).send();
+});
+module.exports = { list, create, read, save, materialize, reviewJourney, reviewJobJourney, readiness, remove, endpoint };

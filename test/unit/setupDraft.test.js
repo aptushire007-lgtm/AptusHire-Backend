@@ -23,6 +23,12 @@ function memory(t) {
     if (change.$inc) for (const [key, amount] of Object.entries(change.$inc)) draft[key] += amount;
     return draft;
   }));
+  t.mock.method(SetupDraft, "findOneAndDelete", filter => query(() => {
+    if (!matches(draft, filter)) return null;
+    const removed = draft;
+    draft = null;
+    return removed;
+  }));
   t.mock.method(Job, "findOne", filter => query(() => matches(job, filter) ? job : null));
   t.mock.method(Job, "create", async payload => { creates++; job = clone(payload); return clone(job); });
   t.mock.method(quota, "enforce", async () => {});
@@ -127,13 +133,23 @@ test("generic job create/update cannot bypass explicit publication review", asyn
   await assert.rejects(jobs.updateJob({ user, params: { id }, body: { status: "published", revision: 1 } }, response()), error => error.code === "PUBLICATION_REVIEW_REQUIRED");
   await assert.rejects(jobs.updateJob({ user, params: { id }, body: { title: "Stale", revision: 0 } }, response()), error => error.code === "JOB_CONFLICT");
 });
+test("private setup draft can be removed and enforces tenant isolation", async t => {
+  const store = memory(t);
+  await start({ title: "Engineer" });
+  assert.ok(store.draft());
+  await assert.rejects(service.remove({ ...user, _id: "507f1f77bcf86cd799439019" }, id), error => error.status === 404);
+  const deleted = await service.remove(user, id);
+  assert.equal(deleted._id, id);
+  assert.equal(store.draft(), null);
+  await assert.rejects(service.remove(user, id), error => error.status === 404);
+});
 test("setup and shared journey routes enforce authentication and recruiter role over HTTP", async t => {
   const express = require("express"), jwt = require("jsonwebtoken");
   const app = express(); app.use(express.json()); app.use("/jobs", require("../../routes/jobRoutes"));
   const server = await new Promise(resolve => { const s = app.listen(0, "127.0.0.1", () => resolve(s)); });
   t.after(() => { server.closeAllConnections(); return new Promise(resolve => server.close(resolve)); });
   const base = `http://127.0.0.1:${server.address().port}`;
-  for (const [method, path] of [["POST", "/setup-drafts"], ["GET", `/setup-drafts/${id}`], ["POST", `/${id}/review-journey`], ["GET", `/${id}/readiness`]]) {
+  for (const [method, path] of [["POST", "/setup-drafts"], ["GET", `/setup-drafts/${id}`], ["DELETE", `/setup-drafts/${id}`], ["POST", `/${id}/review-journey`], ["GET", `/${id}/readiness`]]) {
     assert.equal((await fetch(`${base}/jobs${path}`, { method })).status, 401);
   }
   t.mock.method(jwt, "verify", () => ({ userId: user._id }));

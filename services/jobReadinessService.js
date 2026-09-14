@@ -15,13 +15,13 @@ function assess({ job, rubric, questions, paper, settings, filledOpenings = 0, d
   const hasAssessment = ["auto", "manual"].includes(job.assessmentPolicy);
   const rubricReady = rubric?.status === "approved" && rubric.sourceHash === sourceHashOf(job);
   const questionReady = questions?.status === "approved" && (!questions.sourceHash || questions.sourceHash === questionSourceHash(job, rubric)) && questions.questions?.length > 0;
-  const paperReady = paper?.status === "approved" && String(paper.rubric) === String(rubric?._id) && paper.sections?.length > 0 && paper.sections.every(section => paper.items?.filter(item => item.status === "active" && item.sectionId === section.id).length >= section.servedItemCount);
+  const paperReady = paper?.status === "approved" && paper.sections?.length > 0 && paper.sections.every(section => paper.items?.filter(item => item.status === "active" && item.sectionId === section.id).length >= section.servedItemCount);
   const assessmentEnabled = !["false", "0"].includes(process.env.ASSESSMENT_ENGINE_ENABLED) && settings?.assessments?.enabled !== false;
   const checks = [
     { key: "role", title: "Role brief", required: true, ready: Boolean(job.title?.trim() && job.description?.trim()), reason: "Title and description must be present.", href: `${base}/edit` },
     { key: "rubric", title: "Scoring rubric", required: true, ready: rubricReady, reason: rubric?.status === "approved" && !rubricReady ? "The role brief changed after this rubric was compiled. Review a new version." : "Review and approve the latest rubric.", href: `${base}/rubric`, version: rubric?.version, state: rubric?.status || "missing" },
     { key: "questions", title: "Interview questions", required: true, ready: questionReady, reason: "Approve a question set for the current role and rubric.", href: `${base}/questions`, version: questions?.version, state: questions?.status || "missing" },
-    { key: "assessment", title: "Skills assessment", required: hasAssessment, ready: !hasAssessment || Boolean(paperReady && assessmentEnabled), reason: !hasAssessment ? "Assessment is off for this role." : !assessmentEnabled ? "Assessments are not enabled for this workspace. Change the policy or enable assessments." : "Approve an assessment paper using the current rubric and available questions.", href: `${base}/assessment`, version: paper?.version, state: !hasAssessment ? "not_required" : paper?.status || "missing" },
+    { key: "assessment", title: "Skills assessment", required: hasAssessment, ready: !hasAssessment || Boolean(paperReady && assessmentEnabled), reason: !hasAssessment ? "Assessment is off for this role." : !assessmentEnabled ? "Assessments are not enabled for this workspace. Change the policy or enable assessments." : !paper ? "No assessment paper has been created yet. Compile and approve an assessment paper." : paper.status !== "approved" ? "Approve the assessment paper before publishing." : !paperReady ? "All test sections must have enough approved questions in pool." : "Assessment test is approved and ready.", href: `${base}/assessment`, version: paper?.version, state: !hasAssessment ? "not_required" : paper?.status || "missing" },
     { key: "capacity", title: "Hiring capacity", required: true, ready: Number(job.numberOfOpenings || 1) > filledOpenings, reason: "All planned openings are filled. Increase capacity before reopening recruitment.", href: `${base}/edit` },
   ].map(check => ({ ...check, status: check.ready ? check.required ? "ready" : "not_required" : "needs_attention" }));
   const journey = {
@@ -50,9 +50,12 @@ async function get(jobOrId, company) {
   if (!job || String(job.company?._id || job.company) !== String(company)) throw problem(404, "Job not found.", "JOB_NOT_FOUND");
   const filter = { job: job._id, company };
   const [rubric, questions, paper, settings, snapshot, draft] = await Promise.all([
-    RoleRubric.findOne(filter).sort({ version: -1 }).lean(),
-    QuestionSet.findOne(filter).sort({ version: -1 }).lean(),
-    AssessmentPaper.findOne(filter).sort({ version: -1 }).lean(),
+    RoleRubric.findOne({ ...filter, status: "approved" }).sort({ version: -1 }).lean()
+      .then(r => r || RoleRubric.findOne(filter).sort({ version: -1 }).lean()),
+    QuestionSet.findOne({ ...filter, status: "approved" }).sort({ version: -1 }).lean()
+      .then(q => q || QuestionSet.findOne(filter).sort({ version: -1 }).lean()),
+    AssessmentPaper.findOne({ ...filter, status: "approved" }).sort({ version: -1 }).lean()
+      .then(p => p || AssessmentPaper.findOne(filter).sort({ version: -1 }).lean()),
     CompanySettings.findOne({ company }).select("compliance assessments updatedAt").lean(),
     capacity.capacitySnapshot(job._id, company),
     job.setupDraft ? SetupDraft.findOne({ _id: job.setupDraft, company }).select("journeyReview revision").lean() : null,
