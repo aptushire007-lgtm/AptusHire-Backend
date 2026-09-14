@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const mongoose = require("mongoose");
 const ResumeVersion = require("../models/ResumeVersion");
+const { getJson, setJson } = require("../services/redisCache");
 const Resume = require("../models/Resume");
 const Candidate = require("../models/Candidate");
 const Job = require("../models/Job");
@@ -239,10 +240,13 @@ async function getMatchScoresForJob(req, res) {
   const user = req.user;
   await ensureVersionsMigrated(user);
 
-  const job = await Job.findById(jobId);
+  const job = await Job.findOne({ _id: jobId, status: "published" });
   if (!job) return res.status(404).json({ error: "Job not found" });
 
   const versions = await ResumeVersion.find({ user: user._id, isArchived: false }).sort({ isDefault: -1, createdAt: -1 });
+  const cacheKey = `candidate-match:${String(user._id)}:${String(job._id)}:${versions.map((version) => `${version._id}:${version.updatedAt?.getTime?.() || version.createdAt?.getTime?.() || 0}`).join(",")}`;
+  const cached = await getJson(cacheKey);
+  if (cached) return res.json(cached);
 
   const jobSkills = (job.requiredSkills || []).map((s) => s.toLowerCase());
 
@@ -283,11 +287,13 @@ async function getMatchScoresForJob(req, res) {
     isBestFit: String(sv._id) === bestFitId,
   }));
 
-  res.json({
+  const payload = {
     jobId: job._id,
     jobTitle: job.title,
     versions: result,
-  });
+  };
+  await setJson(cacheKey, payload, 900);
+  res.json(payload);
 }
 
 module.exports = {

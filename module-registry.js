@@ -26,6 +26,7 @@
 
 const path = require("path");
 const logger = require("./utils/logger");
+const { wrapHandler } = require("./middleware/wrapRouter");
 
 // Available module keys — order matters for route mounting (dependencies first).
 const ALL_MODULES = ["ats", "resume", "interview"];
@@ -89,8 +90,8 @@ function mountRawWebhooks(app, express) {
         const fn = wh.exportName ? handler[wh.exportName] : handler;
         app.post(
           wh.path,
-          express.raw({ type: "application/json" }),
-          fn
+          express.raw({ type: "application/json", limit: process.env.LIVEKIT_WEBHOOK_BODY_LIMIT || "256kb" }),
+          wrapHandler(fn)
         );
         logger.info(`mounted raw webhook: ${wh.path} (${manifest.key})`);
       } catch (err) {

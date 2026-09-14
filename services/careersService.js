@@ -14,6 +14,7 @@ const CompanySettings = require("../models/CompanySettings");
 const Job = require("../models/Job");
 const { slugify } = require("../utils/slug");
 const { firstOrigin, publicBaseUrl } = require("../utils/corsOrigins");
+const { getJson, setJson, getVersion, incrementVersion } = require("./redisCache");
 
 // validThrough is MANDATORY for Google's JobPosting — a missing field silently
 // drops the listing from the index. Postings default to 60 days from last touch.
@@ -36,6 +37,7 @@ function cacheSet(key, body, contentType) {
 }
 function cacheClear() {
   cache.clear();
+  incrementVersion("careers-cache:version").catch(() => {});
 }
 
 function careersEnabled(settings) {
@@ -134,9 +136,12 @@ async function publishedJobs(companyId) {
 // Server-rendered careers page. Deliberately dependency-free HTML — crawlers
 // (and Google's Rich Results test) see everything without executing a byte of JS.
 async function renderCareersPage(company) {
-  const key = `careers:${company.slug}`;
+  const version = await getVersion("careers-cache:version");
+  const key = `careers:${version}:${company.slug}`;
   const hit = cacheGet(key);
   if (hit) return hit;
+  const distributed = await getJson(key);
+  if (distributed) return cacheSet(key, distributed.body, distributed.contentType);
 
   const settings = await CompanySettings.findOne({ company: company._id }).select("branding careers");
   const jobs = await publishedJobs(company._id);
@@ -191,7 +196,9 @@ ${jobs.length ? jobCards : '<p class="empty">No open positions right now — che
 </body>
 </html>`;
 
-  return cacheSet(key, body, "text/html; charset=utf-8");
+  const rendered = cacheSet(key, body, "text/html; charset=utf-8");
+  await setJson(key, rendered, 60);
+  return rendered;
 }
 
 function cdata(value) {
@@ -200,9 +207,12 @@ function cdata(value) {
 
 // Indeed-style XML — the de-facto format the aggregator network accepts.
 async function renderJobsFeed(company) {
-  const key = `feed:${company.slug}`;
+  const version = await getVersion("careers-cache:version");
+  const key = `feed:${version}:${company.slug}`;
   const hit = cacheGet(key);
   if (hit) return hit;
+  const distributed = await getJson(key);
+  if (distributed) return cacheSet(key, distributed.body, distributed.contentType);
 
   const jobs = await publishedJobs(company._id);
   const items = jobs
@@ -231,14 +241,19 @@ async function renderJobsFeed(company) {
 ${items}
 </source>`;
 
-  return cacheSet(key, body, "application/xml; charset=utf-8");
+  const rendered = cacheSet(key, body, "application/xml; charset=utf-8");
+  await setJson(key, rendered, 60);
+  return rendered;
 }
 
 // Jobs sitemap — one <url> per published job's apply page plus the careers page.
 async function renderJobsSitemap(company) {
-  const key = `sitemap:${company.slug}`;
+  const version = await getVersion("careers-cache:version");
+  const key = `sitemap:${version}:${company.slug}`;
   const hit = cacheGet(key);
   if (hit) return hit;
+  const distributed = await getJson(key);
+  if (distributed) return cacheSet(key, distributed.body, distributed.contentType);
 
   const jobs = await publishedJobs(company._id);
   const urls = [
@@ -256,7 +271,9 @@ async function renderJobsSitemap(company) {
 ${urls}
 </urlset>`;
 
-  return cacheSet(key, body, "application/xml; charset=utf-8");
+  const rendered = cacheSet(key, body, "application/xml; charset=utf-8");
+  await setJson(key, rendered, 60);
+  return rendered;
 }
 
 module.exports = {

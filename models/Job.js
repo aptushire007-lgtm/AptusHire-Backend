@@ -43,6 +43,21 @@ const jobSchema = new mongoose.Schema(
     // Per-job assessment window config (applies at assignment time).
     assessmentValidityHours: { type: Number, min: 1, max: 720 },     // link validity (default env, 72h)
     assessmentStartDeadlineHours: { type: Number, min: 1, max: 720 }, // must START within this (default = validity)
+
+    // Optional screening questions shown to candidates in the Apply Now modal.
+    // Each question has a text, a type (text | radio), and a mustAsk flag.
+    // Only questions with mustAsk: true are shown before the candidate submits.
+    applicationQuestions: {
+      type: [
+        {
+          question: { type: String, required: true, trim: true },
+          type:     { type: String, enum: ["text", "radio", "checkbox"], default: "text" },
+          options:  { type: [String], default: [] }, // for radio/checkbox
+          mustAsk:  { type: Boolean, default: true },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true, optimisticConcurrency: true }
 );

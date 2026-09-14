@@ -4,6 +4,7 @@ const {
   listCandidates,
   relatedApplications,
   getCandidate,
+  removeApplication,
   moveStage,
   getTimeline,
   exportCandidate,
@@ -25,6 +26,7 @@ const requireAdmin = [requireAuth, requireRole("admin"), requireActiveCompany, r
 router.get("/", requireAdmin, listCandidates); // Phase 12.5 — company-wide, paginated (kills the per-job N+1); ?groupBy=candidate collapses multi-role applicants
 router.get("/dashboard-summary", requireAdmin, require("../controllers/dashboardSummaryController").dashboardSummary);
 router.get("/pipeline", requireAdmin, require("../controllers/pipelineReadController").pipelineRead);
+router.delete("/:id/applications/:jobId", requireAdmin, removeApplication);
 router.get("/:id", requireAdmin, getCandidate);
 router.get("/:id/related", requireAdmin, relatedApplications); // Phase 17 — other applications by the same person at this company
 router.get("/:id/resume", requireAdmin, downloadResume);

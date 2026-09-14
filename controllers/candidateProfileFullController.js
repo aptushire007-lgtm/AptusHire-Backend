@@ -8,6 +8,12 @@ const InterviewSession = require("../models/InterviewSession");
 const OTPVerification = require("../models/OTPVerification");
 const storageService = require("../services/storageService");
 const { detectFileType } = require("../utils/verifyFileSignature");
+const { generateOtp, hashOtp, computeExpiry, canResend, MAX_VERIFY_ATTEMPTS } = require("../utils/otp");
+const { otpEmailTemplate } = require("../utils/emailTemplates");
+const { dispatchEmail } = require("../services/emailDispatchService");
+
+const OTP_CHANNELS = new Set(["email"]);
+const GOVERNMENT_DOCUMENT_TYPES = new Set(["aadhaar", "passport", "driving_license", "pan", "national_id"]);
 
 function computeProfileStrength(profile, hasDefaultResume) {
   let score = 0;
@@ -92,6 +98,12 @@ async function updatePersonalInfo(req, res) {
   const user = req.user;
   const { firstName, lastName, dob, phone, locationCity, photoUrl, headline, bio } = req.body;
 
+  for (const [field, value] of Object.entries({ firstName, lastName, dob, phone, locationCity, photoUrl, headline, bio })) {
+    if (value !== undefined && typeof value !== "string") {
+      return res.status(400).json({ error: `${field} must be a string` });
+    }
+  }
+
   let profile = await CandidateProfile.findOne({ user: user._id });
   if (!profile) profile = new CandidateProfile({ user: user._id });
 
@@ -125,24 +137,37 @@ async function sendOtp(req, res) {
   const { channel, target } = req.body; // channel = 'email' | 'phone'
   const user = req.user;
 
-  // 6-digit mock OTP for verification
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  await OTPVerification.deleteMany({ email: user.email.toLowerCase(), purpose: `verify_${channel}` });
-  await OTPVerification.create({
-    email: user.email.toLowerCase(),
-    otp: code,
-    purpose: `verify_${channel}`,
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-  });
+  if (!OTP_CHANNELS.has(channel)) {
+    return res.status(400).json({ error: "Only email verification is currently supported" });
+  }
 
-  console.log(`[Verification OTP] ${channel} code for ${user.email}: ${code}`);
+  const email = user.email.toLowerCase();
+  const existing = await OTPVerification.findOne({ email, purpose: `verify_${channel}` }).sort({ createdAt: -1 });
+  const resendCheck = canResend(existing && !existing.verified ? existing : null);
+  if (!resendCheck.allowed) return res.status(429).json({ error: resendCheck.reason });
+
+  const code = generateOtp();
+  const otpHash = hashOtp(code);
+  const expiresAt = computeExpiry();
+  if (existing && !existing.verified) {
+    existing.otpHash = otpHash;
+    existing.expiresAt = expiresAt;
+    existing.sendCount += 1;
+    existing.lastSentAt = new Date();
+    existing.attempts = 0;
+    await existing.save();
+  } else {
+    await OTPVerification.create({ email, purpose: `verify_${channel}`, otpHash, expiresAt });
+  }
+
+  const template = otpEmailTemplate("AptusHire", code);
+  await dispatchEmail({ to: email, ...template, category: "candidate_otp", relatedType: "OTPVerification" });
 
   res.json({
     ok: true,
     channel,
-    target: target || (channel === "email" ? user.email : user.phone),
+    target: user.email,
     message: `Verification code sent to your ${channel}.`,
-    debugCode: process.env.NODE_ENV !== "production" ? code : undefined,
   });
 }
 
@@ -150,13 +175,27 @@ async function verifyOtp(req, res) {
   const { channel, code } = req.body;
   const user = req.user;
 
+  if (!OTP_CHANNELS.has(channel) || typeof code !== "string" || !/^\d{6}$/.test(code.trim())) {
+    return res.status(400).json({ error: "A valid email verification code is required" });
+  }
+
   const record = await OTPVerification.findOne({
     email: user.email.toLowerCase(),
     purpose: `verify_${channel}`,
     expiresAt: { $gt: new Date() },
   });
 
-  if (!record || record.otp !== code?.trim()) {
+  if (!record || record.verified) {
+    return res.status(400).json({ error: "Invalid or expired verification code." });
+  }
+
+  if (record.attempts >= MAX_VERIFY_ATTEMPTS) {
+    return res.status(429).json({ error: "Too many incorrect attempts. Please request a new code." });
+  }
+
+  if (hashOtp(code.trim()) !== record.otpHash) {
+    record.attempts += 1;
+    await record.save();
     return res.status(400).json({ error: "Invalid or expired verification code." });
   }
 
@@ -239,8 +278,18 @@ async function uploadGovDocument(req, res) {
   const { docType, docNumber } = req.body;
   const user = req.user;
 
+  if (!GOVERNMENT_DOCUMENT_TYPES.has(docType)) {
+    return res.status(400).json({ error: "A valid government document type is required" });
+  }
+  if (typeof docNumber !== "string" || !/^[A-Za-z0-9][A-Za-z0-9 -]{3,31}$/.test(docNumber.trim())) {
+    return res.status(400).json({ error: "A valid government document number is required" });
+  }
+
   const { buffer, originalname } = req.file;
-  const mimetype = detectFileType(buffer) || "application/pdf";
+  const mimetype = detectFileType(buffer);
+  if (!mimetype) {
+    return res.status(400).json({ error: "Document content must be a valid PDF or DOCX file" });
+  }
 
   const key = await storageService.putObject({
     buffer,
@@ -249,7 +298,7 @@ async function uploadGovDocument(req, res) {
   });
 
   // Mask document number (e.g. XXXX-XXXX-1234)
-  const cleanNumber = (docNumber || "123456789012").replace(/\s+/g, "");
+  const cleanNumber = docNumber.replace(/\s+/g, "");
   const masked = cleanNumber.length > 4 ? `XXXX-XXXX-${cleanNumber.slice(-4)}` : `XXXX-${cleanNumber}`;
 
   let profile = await CandidateProfile.findOne({ user: user._id });
@@ -257,23 +306,12 @@ async function uploadGovDocument(req, res) {
 
   const doc = await GovDocument.create({
     user: user._id,
-    docType: docType || "aadhaar",
+    docType,
     maskedNumber: masked,
     fileUrl: key,
     filePath: key,
-    ocrData: {
-      fullName: user.name,
-      confidence: 0.96,
-    },
-    status: "verified",
-    verifiedBy: "ai_ocr",
-    verifiedAt: new Date(),
+    status: "pending",
   });
-
-  profile.verification = profile.verification || {};
-  profile.verification.govDocVerified = true;
-  profile.verification.govDocVerifiedAt = new Date();
-  profile.verification.nameMatch = "verified";
 
   const hasDefaultResume = (await ResumeVersion.countDocuments({ user: user._id, isDefault: true, isArchived: false })) > 0;
   profile.strengthScore = computeProfileStrength(profile, hasDefaultResume);

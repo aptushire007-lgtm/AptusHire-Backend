@@ -21,6 +21,7 @@ const { writeAuditLog } = require("../middleware/auditLog");
 const { billingEnforced } = require("../utils/billingMode");
 const { activateIfBypassed } = require("../services/demoActivationService");
 const { OAuth2Client } = require("google-auth-library");
+const moduleRegistry = require("../module-registry");
 
 // Short-lived access token — the frontends transparently refresh it via /auth/refresh.
 // Configurable so ops can tune it without a code change. Refresh-token lifetime lives in
@@ -343,8 +344,22 @@ async function refresh(req, res) {
   const user = await User.findById(existing.user);
   if (!user) return res.status(401).json({ error: "Account not found" });
 
-  // Rotate in place: mint a new token in the same family, revoke + link the old one.
+  // Claim the token atomically before minting its replacement. A concurrent request
+  // presenting the same token must observe the revoked state and invalidate the family.
   const rotated = generateRefreshToken();
+  const claimed = await RefreshToken.findOneAndUpdate(
+    { _id: existing._id, revokedAt: null },
+    { $set: { revokedAt: new Date(), replacedByHash: rotated.tokenHash } },
+    { new: true }
+  );
+  if (!claimed) {
+    await RefreshToken.updateMany(
+      { family: existing.family, revokedAt: null },
+      { $set: { revokedAt: new Date() } }
+    );
+    return res.status(401).json({ error: "Session invalidated, please log in again" });
+  }
+
   await RefreshToken.create({
     user: user._id,
     tokenHash: rotated.tokenHash,
@@ -353,10 +368,6 @@ async function refresh(req, res) {
     userAgent: req?.headers?.["user-agent"],
     ip: req?.ip,
   });
-  existing.revokedAt = new Date();
-  existing.replacedByHash = rotated.tokenHash;
-  await existing.save();
-
   res.json({ token: signUser(user), refreshToken: rotated.token, user: sanitizeUser(user) });
 }
 
@@ -479,7 +490,8 @@ async function me(req, res) {
   }
   // Lets the admin UI know up front whether /api/scorecards/* is even mounted (server.js),
   // instead of every candidate page probing it and eating a guaranteed 404 when the flag is off.
-  sanitized.scorecardEngineEnabled = process.env.SCORECARD_ENGINE_ENABLED === "true";
+  sanitized.scorecardEngineEnabled =
+    moduleRegistry.isModuleEnabled("interview") && process.env.SCORECARD_ENGINE_ENABLED === "true";
   res.json(sanitized);
 }
 

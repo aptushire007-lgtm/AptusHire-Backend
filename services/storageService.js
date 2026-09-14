@@ -54,6 +54,7 @@ function encodeReference(result) {
   return `cloudinary:${Buffer.from(JSON.stringify({
     publicId: result.public_id,
     resourceType: result.resource_type,
+    deliveryType: result.type || "upload",
     format: result.format || "",
     secureUrl: result.secure_url,
   }), "utf8").toString("base64url")}`;
@@ -75,17 +76,18 @@ function resolveReference(reference, { contentType } = {}) {
   if (value.startsWith("cloudinary:")) return decodeReference(value);
   // Full https URL stored directly (older upload path)
   if (value.startsWith("https://") || value.startsWith("http://")) {
-    return { publicId: null, resourceType: "raw", secureUrl: value };
+    return { publicId: null, resourceType: "raw", deliveryType: "upload", secureUrl: value };
   }
   // Raw public ID — reconstruct a download URL via the Cloudinary SDK
   if (configured && value) {
     const hasExtension = /\.[^/.]+$/.test(value);
     const secureUrl = cloudinary.url(value, {
       resource_type: "raw",
+      sign_url: true,
       format: hasExtension ? undefined : formatForContentType(contentType),
       secure: true,
     });
-    return { publicId: value, resourceType: "raw", secureUrl };
+    return { publicId: value, resourceType: "raw", deliveryType: "upload", secureUrl };
   }
   throw new Error("storage: invalid Cloudinary reference");
 }
@@ -96,6 +98,7 @@ function uploadBuffer({ buffer, publicId, contentType }) {
       {
         public_id: publicId,
         resource_type: resourceType(contentType),
+        type: "authenticated",
         overwrite: false,
         use_filename: false,
         unique_filename: false,
@@ -112,10 +115,29 @@ async function putObject({ buffer, key, contentType }) {
   return encodeReference(result);
 }
 
+function deliveryUrl(record) {
+  if (!record.publicId) return record.secureUrl;
+  if (record.deliveryType === "authenticated" && record.publicId) {
+    return cloudinary.utils.private_download_url(record.publicId, record.format || undefined, {
+      resource_type: record.resourceType,
+      type: "authenticated",
+      secure: true,
+      attachment: false,
+    });
+  }
+  return cloudinary.url(record.publicId || record.secureUrl, {
+    resource_type: record.resourceType,
+    type: record.deliveryType || "upload",
+    secure: true,
+    sign_url: Boolean(record.publicId),
+    format: record.format || undefined,
+  });
+}
+
 async function getObjectBuffer(reference, options) {
   if (!configured) throw new Error("Cloudinary storage is not configured");
   const record = resolveReference(reference, options);
-  const response = await fetch(record.secureUrl);
+  const response = await fetch(deliveryUrl(record), { signal: AbortSignal.timeout(15000) });
   if (!response.ok) throw new Error(`Cloudinary download failed with HTTP ${response.status}`);
   return Buffer.from(await response.arrayBuffer());
 }
@@ -136,7 +158,8 @@ async function deleteObject(reference) {
 
 async function getSignedDownloadUrl(reference) {
   if (!reference || !configured) return null;
-  return resolveReference(reference).secureUrl;
+  const record = resolveReference(reference);
+  return deliveryUrl(record);
 }
 
 module.exports = { isEnabled, buildKey, putObject, getObjectBuffer, sendDownload, deleteObject, getSignedDownloadUrl };

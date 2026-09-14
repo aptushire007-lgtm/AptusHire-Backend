@@ -5,6 +5,7 @@ const User = require("../models/User");
 const { emitToCompany, emitToCandidateUser } = require("../config/socket");
 const { dispatchEmail } = require("./emailDispatchService");
 const templates = require("../utils/emailTemplates");
+const { deleteKey } = require("./redisCache");
 
 async function getPreference(userId) {
   if (!userId) return null;
@@ -45,6 +46,7 @@ async function notifyCandidate({ candidateId, userId, type, title, message, meta
 
   if (inAppAllowed(pref)) {
     doc = await Notification.create({ candidate: candidateId, user: userId, type, title, message, meta });
+    if (userId) await deleteKey(`candidate-notifications:unread:${String(userId)}`);
     if (userId) emitToCandidateUser(userId, "notification:new", doc);
   }
 

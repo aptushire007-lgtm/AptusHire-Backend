@@ -19,8 +19,25 @@ const RECRUITER_ONLY_JOB_FIELDS = [
 
 function toPublicJob(job) {
   const payload = job?.toObject ? job.toObject() : { ...job };
-  for (const field of RECRUITER_ONLY_JOB_FIELDS) delete payload[field];
-  return payload;
+  const company = payload.company && typeof payload.company === "object"
+    ? { _id: payload.company._id, name: payload.company.name, logoPath: payload.company.logoPath }
+    : undefined;
+  return {
+    _id: payload._id,
+    slug: payload.slug,
+    title: payload.title,
+    department: payload.department,
+    location: payload.location,
+    description: payload.description,
+    requirements: payload.requirements,
+    status: payload.status,
+    requiredSkills: payload.requiredSkills,
+    minExperienceYears: payload.minExperienceYears,
+    requiredEducation: payload.requiredEducation,
+    company,
+    createdAt: payload.createdAt,
+    updatedAt: payload.updatedAt,
+  };
 }
 
 function escapeRegex(str) {
@@ -162,8 +179,12 @@ async function listJobs(req, res) {
 }
 
 async function listPublishedJobs(req, res) {
-  const jobs = await Job.find({ status: "published" }).populate("company", "name logoPath").sort({ createdAt: -1 }).lean();
-  res.json(jobs.map(toPublicJob));
+  const cached = await getJson("public-jobs:list");
+  if (cached) return res.json(cached);
+  const jobs = await Job.find({ status: "published" }).populate("company", "name logoPath").sort({ createdAt: -1 }).limit(200).lean();
+  const payload = jobs.map(toPublicJob);
+  await setJson("public-jobs:list", payload, 60);
+  res.json(payload);
 }
 
 async function getJob(req, res) {
@@ -181,8 +202,19 @@ async function getJob(req, res) {
   if (job.status !== "published" && !isOwningAdmin) {
     return res.status(404).json({ error: "Job not found" });
   }
+  const publicCacheKey = `public-jobs:detail:${String(job._id)}`;
+  const cachedPublic = !isOwningAdmin && (await getJson(publicCacheKey));
+  if (cachedPublic) {
+    if (req.user?.role === "candidate") {
+      const email = String(req.user.email || "").toLowerCase().trim();
+      const mine = await Candidate.findOne({ company: job.company, job: job._id, $or: [{ candidateUser: req.user._id }, { "basicDetails.email": email }] }).select("_id status").lean();
+      cachedPublic.alreadyApplied = Boolean(mine);
+      if (mine) cachedPublic.myApplication = { _id: mine._id, status: mine.status };
+    }
+    return res.json(cachedPublic);
+  }
   await job.populate("company", "name logoPath");
-  const payload = job.toObject();
+  const payload = isOwningAdmin ? job.toObject() : toPublicJob(job);
   // Rubric-approval state is only meaningful (and only ours to disclose) to the
   // owning admin — public candidate-portal callers never see it.
   if (isOwningAdmin) {
@@ -212,6 +244,8 @@ async function getJob(req, res) {
     payload.alreadyApplied = Boolean(mine);
     if (mine) payload.myApplication = { _id: mine._id, status: mine.status };
   }
+
+  if (!isOwningAdmin) await setJson(publicCacheKey, payload, 60);
 
   res.json(payload);
 }
@@ -282,6 +316,8 @@ async function updateJob(req, res) {
   const capacity = updates.numberOfOpenings !== undefined || updates.status === "published"
     ? await capacityService.reconcileJobCapacity(job._id, req.user.company, { actorName: req.user.name || req.user.email || "admin" })
     : null;
+  invalidatePublicJobCache(job._id).catch(() => {});
+  if (wasPublished || job.status === "published") careersService.cacheClear();
   res.json(capacity?.job || job);
 }
 
@@ -326,6 +362,8 @@ async function publishJob(req, res) {
   job.autoClosedAt = undefined;
   job.closureReason = undefined;
   await job.save();
+  invalidatePublicJobCache(job._id).catch(() => {});
+  careersService.cacheClear();
 
   // Re-opening the role puts back the candidates that a previous close/fill
   // released from the board (delete- and hire-elsewhere exits stay put).
@@ -339,6 +377,8 @@ async function publishJob(req, res) {
 async function deleteJob(req, res) {
   const job = await Job.findOneAndDelete({ _id: req.params.id, company: req.user.company });
   if (!job) return res.status(404).json({ error: "Job not found" });
+  invalidatePublicJobCache(job._id).catch(() => {});
+  careersService.cacheClear();
   // Review items for this job can no longer be resolved — `resolveItem` needs
   // the job to advance anyone into its interview loop, and "advance to an
   // interview for a role that was deleted" is not a decision. Left behind they

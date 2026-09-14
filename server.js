@@ -38,6 +38,7 @@ const demoRequestRoutes = require("./routes/demoRequestRoutes");
 const publicCareersRoutes = require("./routes/publicCareersRoutes");
 const platformRoutes = require("./routes/platformRoutes");
 const { webhook } = require("./controllers/paymentController");
+const { wrapHandler } = require("./middleware/wrapRouter");
 
 // ── Core workers & crons (always started) ────────────────────────────────────
 const { initSocket } = require("./config/socket");
@@ -109,7 +110,7 @@ app.use(
 // and reserialize it, breaking signature verification).
 app.post(
   "/api/payments/webhook",
-  express.raw({ type: "application/json" }),
+  express.raw({ type: "application/json", limit: process.env.RAZORPAY_WEBHOOK_BODY_LIMIT || "256kb" }),
   (req, res, next) => {
     req.rawBody = req.body;
     try {
@@ -119,7 +120,7 @@ app.post(
     }
     next();
   },
-  webhook
+  wrapHandler(webhook)
 );
 
 // Module-specific raw-body webhooks (e.g., LiveKit room_finished for the interview module).

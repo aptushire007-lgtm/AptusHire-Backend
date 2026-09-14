@@ -2,11 +2,13 @@ const express = require("express");
 const wrapRouter = require("../middleware/wrapRouter");
 const {
   getDashboard,
+  getDashboardSummary,
   updateProfile,
   getOwnApplication,
   getOwnAssessmentResult,
   getOwnRejectionReport,
   toggleSavedJob,
+  dismissRecommendedJob,
   openOwnSession,
   resendOwnSessionLink,
 } = require("../controllers/candidateDashboardController");
@@ -45,6 +47,22 @@ const resendLimiter = createLimiter({
   message: "You've requested a few links already — please check your inbox and spam folder, then try again later.",
 });
 
+const otpSendLimiter = createLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  prefix: "rl:cand-otp-send:",
+  keyGenerator: (req) => String(req.user?._id || req.ip),
+  message: "Too many verification code requests — please try again later.",
+});
+
+const otpVerifyLimiter = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  prefix: "rl:cand-otp-verify:",
+  keyGenerator: (req) => String(req.user?._id || req.ip),
+  message: "Too many verification attempts — please try again later.",
+});
+
 const openLimiter = createLimiter({
   windowMs: 60 * 60 * 1000,
   max: 60,
@@ -55,11 +73,13 @@ const openLimiter = createLimiter({
 
 // ---- Core Dashboard ----
 router.get("/", requireCandidate, getDashboard);
+router.get("/summary", requireCandidate, getDashboardSummary);
 router.patch("/profile", requireCandidate, updateProfile);
 router.get("/applications/:id", requireCandidate, getOwnApplication);
 router.get("/assessments/:id/result", requireCandidate, getOwnAssessmentResult);
 router.get("/applications/:id/rejection-report", requireCandidate, getOwnRejectionReport);
 router.post("/saved-jobs/:jobId", requireCandidate, toggleSavedJob);
+router.post("/recommended-jobs/:jobId/dismiss", requireCandidate, dismissRecommendedJob);
 router.post("/sessions/:kind/:id/open", requireCandidate, openLimiter, openOwnSession);
 router.post("/sessions/:kind/:id/resend", requireCandidate, resendLimiter, resendOwnSessionLink);
 
@@ -75,8 +95,8 @@ router.get("/jobs/:jobId/match-versions", requireCandidate, getMatchScoresForJob
 // ---- 6-Tab Profile & Trust Verification Engine ----
 router.get("/profile/full", requireCandidate, getFullProfile);
 router.put("/profile/personal", requireCandidate, updatePersonalInfo);
-router.post("/profile/otp/send", requireCandidate, sendOtp);
-router.post("/profile/otp/verify", requireCandidate, verifyOtp);
+router.post("/profile/otp/send", requireCandidate, otpSendLimiter, sendOtp);
+router.post("/profile/otp/verify", requireCandidate, otpVerifyLimiter, verifyOtp);
 router.put("/profile/education", requireCandidate, updateEducation);
 router.put("/profile/experience", requireCandidate, updateExperience);
 router.put("/profile/preferences", requireCandidate, updatePreferences);
