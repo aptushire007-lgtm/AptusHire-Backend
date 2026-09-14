@@ -195,12 +195,32 @@ async function getDashboardSummary(req, res) {
   const cached = await getJson(cacheKey);
   if (cached) return res.json(cached);
 
-  const applications = await Candidate.find(ownApplicationFilter(req.user)).select("_id").lean();
+  const applications = await Candidate.find(ownApplicationFilter(req.user)).select("_id job pipelineExit").lean();
   const assessments = await AssessmentSession.find({ candidate: { $in: applications.map((application) => application._id) } })
     .select("status")
     .lean();
+
+  // The sidebar's interview badge must agree with getDashboard's
+  // `upcomingInterviews` exactly — a badge that says 1 while the Interviews page
+  // says none is the same "my interview isn't showing" bug from the other side.
+  // So the live-application gate is restated here: no pipelineExit, and a job
+  // that still exists (a `job` ref alone can dangle past a deletion).
+  const liveJobIds = await Job.find({ _id: { $in: applications.map((application) => application.job).filter(Boolean) } })
+    .select("_id")
+    .lean();
+  const liveJobIdSet = new Set(liveJobIds.map((job) => String(job._id)));
+  const liveApplicationIds = applications
+    .filter((application) => !(application.pipelineExit && application.pipelineExit.at) && liveJobIdSet.has(String(application.job)))
+    .map((application) => application._id);
+  const interviewCount = await InterviewSession.countDocuments({
+    candidate: { $in: liveApplicationIds },
+    status: { $in: ["scheduled", "in_progress"] },
+    interviewAt: { $gte: new Date() },
+  });
+
   const payload = {
     assessmentCount: assessments.filter((assessment) => !["completed", "expired", "cancelled"].includes(String(assessment.status || "").toLowerCase())).length,
+    interviewCount,
   };
   await setJson(cacheKey, payload, 30);
   res.json(payload);
