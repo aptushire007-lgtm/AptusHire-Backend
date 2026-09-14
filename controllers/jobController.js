@@ -7,6 +7,7 @@ const { sourceHashOf } = require("../utils/rubricEngine");
 const capacityService = require("../services/jobCapacityService");
 const readinessService = require("../services/jobReadinessService");
 const { problem } = require("../utils/setupDraft");
+const { getJson, setJson } = require("../services/redisCache");
 
 const RECRUITER_ONLY_JOB_FIELDS = [
   "setupDraft",
