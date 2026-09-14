@@ -1151,6 +1151,14 @@ const aiInterviewSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const recruiterReviewSchema = new mongoose.Schema({
+  at: Date,
+  by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  byName: String,
+  note: { type: String, maxlength: 2000 },
+  evidenceUpdatedAt: Date,
+}, { _id: false });
+
 const interviewSessionSchema = new mongoose.Schema(
   {
     // §3.1: a candidate can be interviewed more than once (a second round, a redo after a
@@ -1163,6 +1171,8 @@ const interviewSessionSchema = new mongoose.Schema(
     // existed.
     candidate: { type: mongoose.Schema.Types.ObjectId, ref: "Candidate", required: true },
     attempt: { type: Number, default: 1 },
+    recruiterReview: { type: recruiterReviewSchema },
+    recruiterReviewHistory: { type: [recruiterReviewSchema], default: undefined },
     job: { type: mongoose.Schema.Types.ObjectId, ref: "Job", required: true },
     company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", required: true, index: true },
 

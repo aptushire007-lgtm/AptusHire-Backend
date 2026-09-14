@@ -3,7 +3,6 @@ const Candidate = require("../models/Candidate");
 const Job = require("../models/Job");
 const ProctoringEvidence = require("../models/ProctoringEvidence");
 const storageService = require("../services/storageService");
-const livekit = require("../services/livekitService");
 const interviewRecordingService = require("../services/interviewRecordingService");
 const { writeAuditLog } = require("../middleware/auditLog");
 const { hashToken, resendOrRescheduleInterview, findLatestSession } = require("../services/interviewInvitationService");
@@ -103,12 +102,36 @@ async function rescheduleInterview(req, res) {
   if (!ctx) return res.status(404).json({ error: "No interview session found for this candidate" });
   if (!ctx.candidate || !ctx.job) return res.status(404).json({ error: "Candidate or job not found for this session" });
 
-  const { session, interviewUrl, forcedLiveOverride } = await resendOrRescheduleInterview(ctx.session, ctx.candidate, ctx.job, {
-    interviewAt: when,
-    force: Boolean(req.body?.force),
-  });
+  const { session, interviewUrl, forcedLiveOverride, freshStart, previousAttemptId } = await resendOrRescheduleInterview(
+    ctx.session,
+    ctx.candidate,
+    ctx.job,
+    { interviewAt: when, force: Boolean(req.body?.force) }
+  );
   if (forcedLiveOverride) auditForcedOverride(req, session);
-  res.json({ ok: true, interviewUrl, interviewAt: session.interviewAt, expiresAt: session.expiresAt, status: session.status });
+  if (freshStart) {
+    writeAuditLog({
+      req,
+      company: req.user.company,
+      action: "interview.reschedule.fresh_attempt",
+      resourceType: "InterviewSession",
+      resourceId: String(session._id),
+      meta: {
+        candidate: String(session.candidate),
+        previousAttempt: String(previousAttemptId),
+        attempt: session.attempt,
+      },
+    });
+  }
+  res.json({
+    ok: true,
+    interviewUrl,
+    interviewAt: session.interviewAt,
+    expiresAt: session.expiresAt,
+    status: session.status,
+    freshStart: Boolean(freshStart),
+    attempt: session.attempt,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -186,9 +209,15 @@ async function streamEvidenceClip(req, res) {
 // explicit mint — the recruiter pressing play, which actually hands out a URL that can play the
 // video — is logged, same posture as evidence clips and turn audio.
 async function getRecordingUrl(req, res) {
-  const session = await findLatestSession(req.params.id, req.user.company).select(
-    "aiInterview.recordingStatus aiInterview.recordingKey aiInterview.recordingDurationMs " +
-      "aiInterview.recordingStartedAt aiInterview.recordingSource"
+  res.setHeader("Cache-Control", "no-store");
+  const sessionId = req.params.sessionId;
+  if (sessionId && !/^[a-f0-9]{24}$/i.test(sessionId)) return res.status(400).json({ error: "Invalid interview session." });
+  const query = sessionId
+    ? InterviewSession.findOne({ _id: sessionId, company: req.user.company })
+    : findLatestSession(req.params.id, req.user.company);
+  const session = await query.select(
+    "company aiInterview.recordingStatus aiInterview.recordingKey aiInterview.recordingDurationMs " +
+      "aiInterview.recordingStartedAt aiInterview.recordingSource aiInterview.egressId"
   );
   if (!session) return res.status(404).json({ error: "No interview session found for this candidate" });
 
@@ -199,14 +228,29 @@ async function getRecordingUrl(req, res) {
   // the report degrades its transcript timestamps to plain labels rather than seek somewhere
   // confidently wrong. `source` is what tells the player which of those two it is holding.
   const base = {
+    sessionId: String(session._id),
     status,
+    canPlay: interviewRecordingService.canPlay(session),
     url: null,
     durationMs: ai.recordingDurationMs || null,
     startedAt: ai.recordingStartedAt || null,
-    source: ai.recordingSource || null,
+    source: ai.recordingSource || (ai.egressId ? "egress" : null),
   };
   const mint = req.query?.mint === "1";
-  if (!mint) return res.json(base);
+  let playback;
+  try {
+    if (!mint) {
+      const files = await interviewRecordingService.playbackOptions(session);
+      return res.json({ ...base, canPlay: base.canPlay || files.length > 0, files });
+    }
+    playback = await interviewRecordingService.playbackDetails(session, req.query?.file);
+  } catch (err) {
+    const missing = err.status === 404 || err.$metadata?.httpStatusCode === 404 || err.name === "NotFound" || err.name === "NoSuchKey";
+    const statusCode = missing ? 404 : [409, 422, 503].includes(err.status) ? err.status : 502;
+    return res.status(statusCode).json({ error: missing ? "The recording file was not found in storage." :
+      statusCode === 422 ? err.message : statusCode === 409 ? "Choose an available recording file or check availability again." : "The recording could not be loaded from storage. Try again or contact your administrator." });
+  }
+  if (!playback.url) return res.status(409).json({ ...base, error: "A playable recording is not available yet." });
 
   writeAuditLog({
     req,
@@ -216,12 +260,8 @@ async function getRecordingUrl(req, res) {
     resourceId: String(session._id),
   });
 
-  // Both producers land on the same field (`aiInterview.recordingKey`) and the same signed-URL
-  // mint, so one call serves historical Egress rows and browser-captured ones alike. The
-  // LiveKit-owned helper is gone from this path: where the file came from stopped being LiveKit's
-  // business the moment recording did.
-  const url = await interviewRecordingService.playbackUrl(session);
-  res.json({ ...base, url });
+  // Availability is confirmed for this response; historical session outcomes are unchanged.
+  res.json({ ...base, ...playback, status: "completed" });
 }
 
 // Mirrors the model's enum, and must keep mirroring it: this list is the browse page's default
@@ -233,9 +273,7 @@ const RECORDING_STATUSES = ["pending", "recording", "completed", "partial", "fai
 // Browse-all view backing the admin "Recordings" page — every session that has attempted a
 // recording (any status, not just completed) for this company, most recent first. Mirrors
 // adminNotificationController.listMine's { items, total, page, limit, totalPages } envelope. No
-// signed playback URL here — that stays a per-candidate, audit-logged mint via getRecordingUrl
-// above; this endpoint only lists who has one, so selecting a row hands off to the existing report
-// page rather than duplicating video playback.
+// signed playback URL here: the shared player requests one for the selected session explicitly.
 async function listRecordings(req, res) {
   const { page = 1, limit = 20, status } = req.query;
 
@@ -247,7 +285,7 @@ async function listRecordings(req, res) {
 
   const [sessions, total] = await Promise.all([
     InterviewSession.find(filter)
-      .select("aiInterview.recordingStatus aiInterview.recordingDurationMs candidate job updatedAt")
+      .select("aiInterview.recordingStatus aiInterview.recordingDurationMs aiInterview.egressId aiInterview.recordingSource candidate job attempt updatedAt")
       .populate("candidate", "basicDetails.name basicDetails.email")
       .populate("job", "title")
       .sort({ updatedAt: -1 })
@@ -258,11 +296,13 @@ async function listRecordings(req, res) {
 
   const recordings = sessions.map((s) => ({
     sessionId: s._id,
+    attempt: s.attempt || 1,
     candidateId: s.candidate?._id || null,
     candidateName: s.candidate?.basicDetails?.name || "Unnamed applicant",
     candidateEmail: s.candidate?.basicDetails?.email || null,
     jobTitle: s.job?.title || null,
     status: s.aiInterview?.recordingStatus || "none",
+    source: s.aiInterview?.recordingSource || (s.aiInterview?.egressId ? "egress" : null),
     durationMs: s.aiInterview?.recordingDurationMs || null,
     updatedAt: s.updatedAt,
   }));

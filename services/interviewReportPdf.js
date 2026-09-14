@@ -89,7 +89,9 @@ function brandHeaderBand(doc, topY, report) {
 // real or explicitly a placeholder; this is where the recruiter learns which.
 function validityBadge(doc, iv) {
   doc.ensure(20);
-  if (iv.engine === "fallback") {
+  if (iv.recommendedAction?.suppressed) {
+    doc.text("Interview summary scores and automated recommendation are withheld. Review the recorded evidence before deciding the next step.", { size: 9, color: MUTED, gap: 8 });
+  } else if (iv.engine === "fallback") {
     doc.text(
       "FALLBACK ENGINE — the real AI evaluation did not run. Every score below is a PLACEHOLDER from answer-completeness heuristics, not a real evaluation. A human must review the transcript directly.",
       { size: 10, bold: true, color: WARN, gap: 8 }
@@ -154,13 +156,18 @@ function buildReportPdf(report) {
 
   const ev = iv.evaluation;
 
-  labelValue(doc, "Interview status", iv.status);
+  labelValue(doc, "Interview status", String(iv.status || "Unknown").replace(/_/g, " "));
   labelValue(doc, "Format", iv.modality === "voice" ? "Voice (spoken answers)" : "Text");
   labelValue(doc, "Engine", iv.engine === "fallback" ? "Deterministic fallback (external AI not used)" : "AI");
-  labelValue(doc, "Questions", `${iv.questionCount ?? "—"} / ${iv.maxQuestions ?? "—"}`);
+  labelValue(doc, "Questions recorded", iv.questionCount);
+  labelValue(doc, "Planned question maximum", iv.maxQuestions);
   if (iv.startedAt) labelValue(doc, "Started", fmtWhen(iv.startedAt));
   if (iv.completedAt) labelValue(doc, "Completed", fmtWhen(iv.completedAt));
-  if (iv.substance) labelValue(doc, "Responsive answers", `${iv.substance.responsiveCount} / ${iv.substance.totalAnswers}`);
+  if (iv.substance) {
+    labelValue(doc, "Attempted answer segments", iv.substance.totalAnswers);
+    labelValue(doc, "Segments meeting word-count check", iv.substance.responsiveCount);
+    doc.text("This word-count check does not establish correctness or count unique questions.", { size: 9, color: MUTED, gap: 6 });
+  }
   // Rule 5 — uncertainty is visible on the PDF, not only on the screen. A printed score with no
   // indication of how much of the interview it covers is the version most likely to end up in
   // front of someone with no access to the transcript behind it.
@@ -200,7 +207,7 @@ function buildReportPdf(report) {
     }
     const isFallback = ev.generatedBy === "fallback";
     doc.moveDown(2);
-    doc.text(`Overall score: ${ev.overallScore ?? "—"}/100${isFallback ? "  (PLACEHOLDER)" : ""}`, {
+    doc.text(ev.overallScore == null ? "Overall score: not available" : `Overall score: ${ev.overallScore}/100${isFallback ? "  (PLACEHOLDER)" : ""}`, {
       size: 14,
       bold: true,
       color: isFallback ? MUTED : INK,
@@ -655,6 +662,7 @@ function assessmentSection(doc, a, criterionLabels = {}) {
 // §5: explicit action verb + one-line justification, the last thing before the footer.
 function recommendedActionLine(doc, action) {
   if (!action) return;
+  doc.ensure(76);
   doc.moveDown(6);
   doc.hr({ gapAfter: 6 });
   // A withheld recommendation is labelled as withheld, not printed as a decision.
@@ -742,12 +750,17 @@ function bulletList(doc, title, items) {
 }
 
 function footer(doc, report) {
-  doc.moveDown(14);
-  doc.hr({ gapAfter: 8 });
-  doc.text(
-    `Confidential — generated ${fmtWhen(new Date())} for internal hiring use. Handle in line with your data-retention policy.`,
-    { size: 8, color: MUTED }
-  );
+  // Page furniture stays inside the reserved bottom margin, never creates an
+  // otherwise blank trailing page when flowing content reaches the page edge.
+  const current = doc._buf;
+  const generated = fmtWhen(new Date());
+  doc.pages.forEach((page, index) => {
+    doc._buf = page;
+    doc._line(doc.left, 32, sanitize(`Confidential - generated ${generated} for internal hiring use.`), 8, false, MUTED);
+    doc._line(doc.left, 20, "Handle in line with your data-retention policy.", 8, false, MUTED);
+    doc._line(doc.left, 20, `${index + 1} / ${doc.pages.length}`, 8, false, MUTED, "right", doc.contentWidth);
+  });
+  doc._buf = current;
 }
 
 module.exports = { buildReportPdf };

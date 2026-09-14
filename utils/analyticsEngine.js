@@ -61,6 +61,29 @@ function computeTimeToHire(candidates) {
   };
 }
 
+// Current screening state, counted once per application rather than per run.
+function applicationScreening(candidates) {
+  const decisions = { pass: 0, review: 0, fail: 0 };
+  const scores = [];
+  const sources = new Set();
+  for (const candidate of candidates) {
+    const ats = candidate.ats || {};
+    if (Object.hasOwn(decisions, ats.decision)) decisions[ats.decision] += 1;
+    if (ats.overallScore != null && Number.isFinite(Number(ats.overallScore))) {
+      scores.push(Number(ats.overallScore));
+      sources.add(ats.engine === "evidence" ? "evidence" : "legacy");
+    }
+  }
+  return {
+    decisions,
+    passRate: candidates.length ? Math.round(decisions.pass / candidates.length * 1000) / 1000 : null,
+    reviewRate: candidates.length ? Math.round(decisions.review / candidates.length * 1000) / 1000 : null,
+    scoreDistribution: scoreDistribution(scores),
+    scoreSource: sources.size > 1 ? "mixed" : [...sources][0] || "legacy",
+    scoreUnit: "application",
+  };
+}
+
 // Score distribution in decile bins (same shape the calibration curve uses).
 function scoreDistribution(scores) {
   const bins = [];
@@ -204,6 +227,7 @@ function sourceQuality(candidates, probesByCandidate = new Map()) {
 }
 
 module.exports = {
+  applicationScreening,
   computeFunnel,
   computeTimeToHire,
   scoreDistribution,

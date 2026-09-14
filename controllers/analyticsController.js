@@ -15,6 +15,7 @@ const CalibrationCurve = require("../models/CalibrationCurve");
 const calibrationService = require("../services/calibrationService");
 const {
   computeFunnel,
+  applicationScreening,
   computeTimeToHire,
   scoreDistribution,
   topEliminators,
@@ -44,12 +45,9 @@ async function getOverview(req, res) {
   // One round-trip instead of four serial ones. All four are independent, and
   // `.lean()` skips Mongoose document hydration — these rows are only read and
   // aggregated, never saved, so the full model instances were pure overhead.
-  const [candidates, assessments, jobCount, interviewsCompleted] = await Promise.all([
+  const [candidates, jobCount, interviewsCompleted] = await Promise.all([
     Candidate.find({ company, createdAt: range })
       .select("status stageHistory createdAt ats candidateUser basicDetails.email")
-      .lean(),
-    AtsAssessment.find({ company, createdAt: range, stage: "pre_interview" })
-      .select("overallScore band decision mode")
       .lean(),
     Job.countDocuments({ company }),
     InterviewSession.countDocuments({ company, "aiInterview.completedAt": range }),
@@ -63,17 +61,9 @@ async function getOverview(req, res) {
   // (legacy rows) then the doc id (guest applications with neither).
   const applicationCount = candidates.length;
   const uniqueCandidates = new Set(
-    candidates.map((c) => String(c.candidateUser || c.basicDetails?.email || c._id))
+    candidates.map((c) => String(c.candidateUser || c.basicDetails?.email?.trim().toLowerCase() || c._id))
   ).size;
 
-  const decisions = { pass: 0, review: 0, fail: 0 };
-  for (const c of candidates) {
-    const d = c.ats?.decision;
-    if (decisions[d] !== undefined) decisions[d] += 1;
-  }
-  const scores = assessments.length
-    ? assessments.map((a) => a.overallScore)
-    : candidates.map((c) => c.ats?.overallScore).filter((s) => s != null);
 
   res.json({
     range: { from, to },
@@ -87,15 +77,7 @@ async function getOverview(req, res) {
       hires: funnel.stages.find((s) => s.stage === "joined")?.count || 0,
       offersAccepted: funnel.stages.find((s) => s.stage === "offer_accepted")?.count || 0,
     },
-    screening: {
-      decisions,
-      // Rates are per APPLICATION (the right denominator for "% of applications
-      // that passed screening"), not per unique candidate.
-      passRate: applicationCount ? Math.round((decisions.pass / applicationCount) * 1000) / 1000 : null,
-      reviewRate: applicationCount ? Math.round((decisions.review / applicationCount) * 1000) / 1000 : null,
-      scoreDistribution: scoreDistribution(scores),
-      scoreSource: assessments.length ? "evidence" : "legacy",
-    },
+    screening: applicationScreening(candidates),
     funnel,
     timeToHire: computeTimeToHire(candidates),
   });

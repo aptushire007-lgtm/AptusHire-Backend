@@ -92,6 +92,23 @@ async function createInterviewSessionIfNeeded(candidate, job, { newAttempt = fal
   return session;
 }
 
+// Has this session actually been *used*? A reschedule only needs to wipe the slate when there is
+// a slate to wipe — a recruiter moving the slot of an interview nobody has opened yet has nothing
+// to run "fresh from the start", and minting a throwaway attempt for each such move would litter
+// the candidate's attempt history (candidateController lists every attempt) with empty cancelled
+// rows. `startedAt` alone is not enough: a candidate who granted the camera and answered one
+// question before the line dropped has progress that must not silently resume on the new link.
+function hasInterviewProgress(session) {
+  const ai = session.aiInterview || {};
+  return Boolean(
+    session.startedAt ||
+      ai.startedAt ||
+      ai.turns?.length ||
+      session.status === "in_progress" ||
+      ai.status === "in_progress"
+  );
+}
+
 // Resend an interview link, or reschedule it to a new time. Because we only ever
 // store the token *hash* (never the raw token), the original link can't be
 // reconstructed — so both operations mint a *fresh* token. That is also the safer
@@ -99,6 +116,10 @@ async function createInterviewSessionIfNeeded(candidate, job, { newAttempt = fal
 // reschedule; omit it to resend the same slot with a refreshed validity window.
 // Unlike createInterviewSessionIfNeeded (which is idempotent on auto-apply), this is
 // an explicit recruiter action and always rotates the token and re-emails.
+//
+// The two verbs also differ in what the new link RESUMES — see `freshStart` below. A resend
+// continues the existing transcript; a reschedule of an interview that had already started
+// always opens on a clean new attempt, so "rescheduled" never means "dropped back in halfway".
 //
 // `force` overrides the live-interview guard below — an explicit "issue a new link
 // right now, I understand this ends the candidate's current session" from the
@@ -111,8 +132,9 @@ async function resendOrRescheduleInterview(session, candidate, job, { interviewA
   // A *live* in-progress attempt must not have its token rotated out from under
   // the candidate BY DEFAULT. But an in-progress interview whose link has EXPIRED is a
   // locked-out candidate, not a live attempt — re-issuing the link is the only
-  // recovery (startInterview resumes the existing transcript, so nothing the
-  // candidate answered is lost). `force` lets a recruiter override the default and
+  // recovery (on a resend startInterview resumes the existing transcript, so nothing the
+  // candidate answered is lost; a reschedule deliberately starts a new attempt instead, and the
+  // answered turns stay readable on the retired one). `force` lets a recruiter override the default and
   // deliberately end the live session anyway (e.g. wrong candidate is on the call,
   // link was shared with the wrong person, session is stuck).
   const linkExpired = session.status === "expired" || (session.expiresAt && session.expiresAt.getTime() < Date.now());
@@ -129,11 +151,6 @@ async function resendOrRescheduleInterview(session, candidate, job, { interviewA
   }
 
   const token = crypto.randomBytes(32).toString("hex");
-  session.tokenHash = hashToken(token);
-  // Kills any portal JWT already issued from the OLD link (candidateAuth.js checks this
-  // against the token's embedded epoch) — not just future logins with the old raw URL.
-  session.sessionEpoch = (session.sessionEpoch || 0) + 1;
-  session.interviewAt = nextInterviewAt;
   // Anchoring validity to nextInterviewAt is only safe when that slot is still
   // ahead of us. A resend (interviewAt omitted) keeps the OLD session.interviewAt,
   // which for a long-overdue interview can already be more than the validity
@@ -141,17 +158,77 @@ async function resendOrRescheduleInterview(session, candidate, job, { interviewA
   // already dead on arrival, silently breaking "resend" 's promise of a working
   // link. Anchor to now instead whenever that would happen.
   const anchoredExpiresAt = computeExpiresAt(nextInterviewAt);
-  session.expiresAt = anchoredExpiresAt.getTime() > Date.now() ? anchoredExpiresAt : computeExpiresAt(new Date());
-  session.status = "scheduled";
-  session.accessedAt = undefined; // fresh link — clear the "already opened" marker
-  // Let the reminder cron fire again for the (possibly new) slot.
-  session.reminder24hSent = false;
-  session.reminder1hSent = false;
-  await session.save();
+  const nextExpiresAt = anchoredExpiresAt.getTime() > Date.now() ? anchoredExpiresAt : computeExpiresAt(new Date());
+
+  const rescheduled = Boolean(interviewAt);
+  // A RESCHEDULE of an already-started interview starts over; a RESEND resumes. That split is the
+  // whole difference between the two verbs and it is deliberate:
+  //
+  //   resend    — "you were locked out, here is your link again". startInterview picks the existing
+  //               transcript back up, so nothing the candidate already answered is lost. Wiping it
+  //               here would punish the candidate for OUR expired link.
+  //   reschedule — "we are doing this at a different time". The candidate is coming back to a new
+  //               sitting, possibly days later, and resuming would drop them mid-interview into
+  //               questions from a conversation they no longer remember, with a stale plan, a stale
+  //               proctoring baseline and half a recording. Every reschedule therefore hands back a
+  //               link to a session with NOTHING carried over.
+  //
+  // The clean slate is a NEW attempt document rather than an in-place wipe. `attempt` exists for
+  // exactly this ("a redo after a technical failure" — see the model), and keeping the old document
+  // is what makes the reset safe: the previous transcript, evaluation, recording and proctoring
+  // evidence stay readable for the hiring team and for a candidate's own data-rights export, and
+  // the consumed attempt still counts against the tenant's interview quota (quotaService counts
+  // aiInterview.startedAt) instead of being erased along with the progress.
+  const freshStart = rescheduled && hasInterviewProgress(session);
+
+  let target = session;
+
+  if (freshStart) {
+    // Retire the attempt being replaced. Bumping its epoch (rather than only cancelling it) is what
+    // makes the message accurate for a candidate sitting on the old portal session right now:
+    // candidateAuth checks epoch BEFORE status, so they are told their link was replaced with a new
+    // one, not that their interview was cancelled. Cancelling additionally kills the old raw URL.
+    session.sessionEpoch = (session.sessionEpoch || 0) + 1;
+    session.status = "cancelled";
+    // Expire it now as well. Without this a retired attempt keeps a validity window that can run
+    // days into the future, and jobs/interviewReminderJob.sweepAbandoned — which only looks at
+    // sessions whose link has already run out — would leave its half-finished aiInterview sitting
+    // at "in_progress" (and its LiveKit room open) for all of it. Expiring here hands the close-out
+    // to the sweep that already exists rather than reaching into aiInterviewService from a service
+    // that has no other reason to know about it.
+    session.expiresAt = new Date();
+    // Nothing more is due on a superseded attempt.
+    session.reminder24hSent = true;
+    session.reminder1hSent = true;
+    await session.save();
+
+    target = await InterviewSession.create({
+      candidate: session.candidate,
+      attempt: (session.attempt || 1) + 1,
+      job: job._id,
+      company: session.company,
+      tokenHash: hashToken(token),
+      interviewAt: nextInterviewAt,
+      expiresAt: nextExpiresAt,
+      instructions: session.instructions,
+    });
+  } else {
+    target.tokenHash = hashToken(token);
+    // Kills any portal JWT already issued from the OLD link (candidateAuth.js checks this
+    // against the token's embedded epoch) — not just future logins with the old raw URL.
+    target.sessionEpoch = (target.sessionEpoch || 0) + 1;
+    target.interviewAt = nextInterviewAt;
+    target.expiresAt = nextExpiresAt;
+    target.status = "scheduled";
+    target.accessedAt = undefined; // fresh link — clear the "already opened" marker
+    // Let the reminder cron fire again for the (possibly new) slot.
+    target.reminder24hSent = false;
+    target.reminder1hSent = false;
+    await target.save();
+  }
 
   const interviewUrl = buildInterviewUrl(token);
-  const sessionWithUrl = { ...session.toObject(), interviewUrl };
-  const rescheduled = Boolean(interviewAt);
+  const sessionWithUrl = { ...target.toObject(), interviewUrl };
 
   const applicantUser = await User.findOne({ email: candidate.basicDetails.email, role: "candidate" });
   await notifyCandidate({
@@ -162,7 +239,7 @@ async function resendOrRescheduleInterview(session, candidate, job, { interviewA
     message: rescheduled
       ? `Your interview has been rescheduled to ${nextInterviewAt.toLocaleString("en-US")}. Check your email for the updated interview link.`
       : `Here is your interview link for ${job.title}. Your interview is scheduled for ${nextInterviewAt.toLocaleString("en-US")}. Check your email for the link and instructions.`,
-    meta: { interviewSessionId: session._id, jobId: job._id },
+    meta: { interviewSessionId: target._id, jobId: job._id },
     email: {
       to: candidate.basicDetails.email,
       template: "interviewInvitationEmailTemplate",
@@ -173,7 +250,17 @@ async function resendOrRescheduleInterview(session, candidate, job, { interviewA
   // interviewUrl is returned so the caller (recruiter) can copy/share the link directly —
   // it can't be reconstructed later since only the token hash is persisted. forcedLiveOverride
   // tells the controller whether this call actually ended a live session, for audit logging.
-  return { session, interviewUrl, forcedLiveOverride: inProgress && !linkExpired && force };
+  // `session` is the session the new link points at, which on a fresh-start reschedule is a
+  // DIFFERENT document from the one passed in — callers must use this one, not their own handle.
+  // `freshStart` says whether the previous attempt was retired rather than resumed, so the
+  // controller can say so in its audit trail and its response.
+  return {
+    session: target,
+    interviewUrl,
+    forcedLiveOverride: inProgress && !linkExpired && force,
+    freshStart,
+    previousAttemptId: freshStart ? session._id : null,
+  };
 }
 
 module.exports = {

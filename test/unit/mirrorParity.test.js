@@ -31,7 +31,7 @@ const serverDialogueActs = require("../../utils/dialogueActs");
 const serverFinish = require("../../utils/finishIntent");
 
 const browserUrl = (file) =>
-  pathToFileURL(path.join(__dirname, "..", "..", "..", "user", "src", "portal", file)).href;
+  pathToFileURL(path.join(__dirname, "..", "..", "..", "AptusHire-Frontend", "src", "portal", file)).href;
 
 // Real shapes of spontaneous speech: trailing conjunctions, fillers, completed sentences, the
 // short answers that are hardest to classify, and the degenerate cases.

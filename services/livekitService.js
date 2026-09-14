@@ -291,10 +291,9 @@ async function handleWebhookEvent(event) {
 // recording, or persistent storage not configured), which the caller renders as "no recording" rather than an
 // error.
 //
-// Kept as a compatibility helper for callers, but it only resolves Cloudinary references.
+// Compatibility helper; historical Egress files resolve through private R2 playback too.
 async function getRecordingPlaybackUrl(session) {
-  if (session?.aiInterview?.recordingStatus !== "completed") return null;
-  return storageService.getSignedDownloadUrl(session.aiInterview.recordingKey, { expiresInSeconds: 900 });
+  return require("./interviewRecordingService").playbackUrl(session);
 }
 
 // How many of this company's realtime sessions are live right now — the fairness denominator for

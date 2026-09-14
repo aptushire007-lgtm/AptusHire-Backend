@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const jobSchema = new mongoose.Schema(
   {
     company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", required: true },
+    setupDraft: { type: mongoose.Schema.Types.ObjectId, ref: "SetupDraft", index: true },
     title: { type: String, required: true, trim: true },
     slug: { type: String, unique: true, sparse: true, index: true },
     department: { type: String, trim: true },
@@ -58,7 +59,7 @@ const jobSchema = new mongoose.Schema(
       default: [],
     },
   },
-  { timestamps: true }
+  { timestamps: true, optimisticConcurrency: true }
 );
 
 jobSchema.statics.findByIdOrSlug = function (idOrSlug) {
