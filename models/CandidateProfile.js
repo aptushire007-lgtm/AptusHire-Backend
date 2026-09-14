@@ -82,6 +82,7 @@ const candidateProfileSchema = new mongoose.Schema(
     preferences: { type: preferencesSchema, default: () => ({}) },
 
     savedJobs: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Job" }], default: [] },
+    dismissedJobs: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Job" }], default: [] },
 
     profileCompletionPercent: { type: Number, default: 0, min: 0, max: 100 },
     strengthScore: { type: Number, default: 0, min: 0, max: 100 },

@@ -298,6 +298,18 @@ const candidateSchema = new mongoose.Schema(
       capturedAt: { type: Date },
     },
 
+    // Answers to per-job screening questions (applicationQuestions on Job).
+    // Stored at apply time; shown to the recruiter alongside the application.
+    applicationAnswers: {
+      type: [
+        {
+          question: { type: String, trim: true },
+          answer:   { type: mongoose.Schema.Types.Mixed },
+        },
+      ],
+      default: [],
+    },
+
     // DPDP consent captured at application time. `aiProcessing` gates whether the
     // candidate's resume/answers may be sent to the external LLM — without it the
     // interview runs on the local deterministic engine so no PII leaves the system.
@@ -354,7 +366,7 @@ const candidateSchema = new mongoose.Schema(
       at: { type: Date },
       reason: {
         type: String,
-        enum: ["hired_for_other_role", "job_filled", "job_closed", "job_deleted"],
+        enum: ["hired_for_other_role", "job_filled", "job_closed", "job_deleted", "application_removed"],
       },
       // Only for hired_for_other_role — the winning role and application.
       hiredForJob: { type: mongoose.Schema.Types.ObjectId, ref: "Job" },

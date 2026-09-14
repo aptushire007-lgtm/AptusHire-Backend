@@ -18,6 +18,13 @@ function routeLabel(req) {
   return "unmatched";
 }
 
+function safeRequestPath(req) {
+  return String(req.originalUrl || "").replace(
+    /\/interview-sessions\/verify\/[^/?#]+/gi,
+    "/interview-sessions/verify/[redacted]"
+  );
+}
+
 function requestContext(req, res, next) {
   const reqId = req.headers["x-request-id"] || crypto.randomUUID();
   req.id = reqId;
@@ -32,7 +39,7 @@ function requestContext(req, res, next) {
     metrics.recordHttp({ method: req.method, route, status: res.statusCode, durationMs });
     req.log.info("request", {
       method: req.method,
-      path: req.originalUrl,
+      path: safeRequestPath(req),
       route,
       status: res.statusCode,
       durationMs: Math.round(durationMs),
@@ -47,6 +54,7 @@ function requestContext(req, res, next) {
 // is set (so a public VPS can't leak internal counters); open in dev when it's unset.
 function metricsEndpoint(req, res) {
   const token = process.env.METRICS_TOKEN;
+  if (!token && process.env.NODE_ENV === "production") return res.status(503).end();
   if (token && req.headers.authorization !== `Bearer ${token}`) {
     return res.status(401).end();
   }

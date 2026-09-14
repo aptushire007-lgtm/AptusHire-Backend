@@ -26,6 +26,7 @@ const { rankRecommendedJobs } = require("../utils/candidateRecommendations");
 // signing. Importing it (rather than restating either here) is what keeps the
 // dashboard's "open my interview" identical to the magic link's.
 const { openSessionForOwner } = require("./interviewPortalController");
+const { getJson, setJson } = require("../services/redisCache");
 
 async function getOrCreateProfile(userId) {
   let profile = await CandidateProfile.findOne({ user: userId });
@@ -59,7 +60,8 @@ async function getDashboard(req, res) {
 
   const applications = await Candidate.find(ownApplicationFilter(user))
     .populate({ path: "job", select: "title department company", populate: { path: "company", select: "name" } })
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .limit(200);
   const applicationIds = applications.map((a) => a._id);
 
   const resumes = await Resume.find({ candidateEmail: user.email }).sort({ createdAt: -1 }).limit(5);
@@ -81,7 +83,7 @@ async function getDashboard(req, res) {
   // candidate/job while still making relevance the primary ordering signal.
   const recommendationPool = await Job.find({
     status: "published",
-    _id: { $nin: [...appliedJobIds, ...profile.savedJobs] },
+    _id: { $nin: [...appliedJobIds, ...profile.savedJobs, ...(profile.dismissedJobs || [])] },
   })
     .select("-numberOfOpenings -filledOpenings -pendingOffers -autoClosedAt -closureReason")
     .populate("company", "name")
@@ -108,7 +110,8 @@ async function getDashboard(req, res) {
   const now = new Date();
   const interviewSessions = await InterviewSession.find({ candidate: { $in: applicationIds } })
     .populate("job", "title department")
-    .sort({ interviewAt: -1 });
+    .sort({ interviewAt: -1 })
+    .limit(200);
 
   // Assessments were absent from this payload entirely, so a candidate who had
   // been invited to one saw nothing here and could only discover it by finding
@@ -116,7 +119,8 @@ async function getDashboard(req, res) {
   // omission decided outcomes.
   const assessmentSessions = await AssessmentSession.find({ candidate: { $in: applicationIds } })
     .populate({ path: "job", select: "title department company", populate: { path: "company", select: "name" } })
-    .sort({ expiresAt: -1 });
+    .sort({ expiresAt: -1 })
+    .limit(200);
 
   // Applications whose role was deleted / filled / closed (Phase 17). Their
   // process is over, so a still-"scheduled" interview or an open assessment
@@ -184,6 +188,22 @@ async function getDashboard(req, res) {
     // have time they do not have.
     serverTime: now.toISOString(),
   });
+}
+
+async function getDashboardSummary(req, res) {
+  const cacheKey = `candidate-dashboard:summary:${String(req.user._id)}`;
+  const cached = await getJson(cacheKey);
+  if (cached) return res.json(cached);
+
+  const applications = await Candidate.find(ownApplicationFilter(req.user)).select("_id").lean();
+  const assessments = await AssessmentSession.find({ candidate: { $in: applications.map((application) => application._id) } })
+    .select("status")
+    .lean();
+  const payload = {
+    assessmentCount: assessments.filter((assessment) => !["completed", "expired", "cancelled"].includes(String(assessment.status || "").toLowerCase())).length,
+  };
+  await setJson(cacheKey, payload, 30);
+  res.json(payload);
 }
 
 async function updateProfile(req, res) {
@@ -307,6 +327,25 @@ async function toggleSavedJob(req, res) {
 
   await profile.save();
   res.json({ saved: index < 0, savedJobs: profile.savedJobs });
+}
+
+async function dismissRecommendedJob(req, res) {
+  const { jobId } = req.params;
+  const job = await Job.findById(jobId).lean();
+  if (!job) return res.status(404).json({ error: "Job not found" });
+
+  const profile = await getOrCreateProfile(req.user._id);
+
+  // Idempotent: only add if not already dismissed
+  const alreadyDismissed = (profile.dismissedJobs || []).some(
+    (id) => String(id) === String(jobId),
+  );
+  if (!alreadyDismissed) {
+    profile.dismissedJobs = [...(profile.dismissedJobs || []), jobId];
+    await profile.save();
+  }
+
+  res.json({ dismissed: true });
 }
 
 // Locate an interview/assessment session that belongs to the authenticated
@@ -472,11 +511,13 @@ async function initializeDashboard(userId, userName, userEmail) {
 
 module.exports = {
   getDashboard,
+  getDashboardSummary,
   updateProfile,
   getOwnApplication,
   getOwnAssessmentResult,
   getOwnRejectionReport,
   toggleSavedJob,
+  dismissRecommendedJob,
   openOwnSession,
   resendOwnSessionLink,
   initializeDashboard,

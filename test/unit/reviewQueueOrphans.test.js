@@ -21,12 +21,16 @@ const InterviewQueue = require("../../models/InterviewQueue");
 const UsageEvent = require("../../models/UsageEvent");
 const evidenceClipService = require("../../services/evidenceClipService");
 const { listQueue } = require("../../controllers/reviewQueueController");
-const { purgeCandidateArtifacts } = require("../../services/candidatePurgeService");
+const {
+  purgeCandidateArtifacts,
+  removeApplicationFromPipeline,
+} = require("../../services/candidatePurgeService");
 
 const originals = {
   reviewFind: ReviewItem.find,
   reviewDeleteMany: ReviewItem.deleteMany,
   candidateDeleteOne: Candidate.deleteOne,
+  candidateFindOneAndUpdate: Candidate.findOneAndUpdate,
   sessionFind: InterviewSession.find,
   sessionDeleteMany: InterviewSession.deleteMany,
   queueDeleteMany: InterviewQueue.deleteMany,
@@ -37,6 +41,7 @@ afterEach(() => {
   ReviewItem.find = originals.reviewFind;
   ReviewItem.deleteMany = originals.reviewDeleteMany;
   Candidate.deleteOne = originals.candidateDeleteOne;
+  Candidate.findOneAndUpdate = originals.candidateFindOneAndUpdate;
   InterviewSession.find = originals.sessionFind;
   InterviewSession.deleteMany = originals.sessionDeleteMany;
   InterviewQueue.deleteMany = originals.queueDeleteMany;
@@ -149,4 +154,49 @@ test("purging a candidate takes their review items with it", async () => {
   assert.equal(String(scopes[0].company), String(companyId));
   assert.equal(String(scopes[0].candidate), String(candidate._id));
   assert.equal(summary.reviewItems, 2, "the erasure receipt reports what it removed");
+});
+
+test("removing one application only exits that candidate-job pipeline entry", async () => {
+  const candidateA = new mongoose.Types.ObjectId();
+  const candidateB = new mongoose.Types.ObjectId();
+  const jobA = new mongoose.Types.ObjectId();
+  const jobB = new mongoose.Types.ObjectId();
+  const updated = { _id: candidateA, company: companyId, job: jobA };
+  const updateCalls = [];
+  const deleteCalls = [];
+
+  Candidate.findOneAndUpdate = async (query, update, options) => {
+    updateCalls.push({ query, update, options });
+    return updated;
+  };
+  InterviewQueue.deleteMany = async (scope) => {
+    deleteCalls.push({ kind: "queue", scope });
+    return { deletedCount: 1 };
+  };
+  ReviewItem.deleteMany = async (scope) => {
+    deleteCalls.push({ kind: "review", scope });
+    return { deletedCount: 1 };
+  };
+
+  const summary = await removeApplicationFromPipeline({
+    companyId,
+    candidateId: candidateA,
+    jobId: jobA,
+  });
+
+  assert.equal(updateCalls.length, 1);
+  assert.deepEqual(updateCalls[0].query, { _id: candidateA, company: companyId, job: jobA });
+  assert.equal(updateCalls[0].update.$set["pipelineExit.reason"], "application_removed");
+  assert.equal(deleteCalls.length, 2);
+  for (const call of deleteCalls) {
+    assert.deepEqual(call.scope, { company: companyId, candidate: candidateA, job: jobA });
+    assert.notEqual(String(call.scope.candidate), String(candidateB));
+    assert.notEqual(String(call.scope.job), String(jobB));
+  }
+  assert.deepEqual(summary, {
+    candidateId: candidateA,
+    jobId: jobA,
+    queueEntries: 1,
+    reviewItems: 1,
+  });
 });
