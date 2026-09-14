@@ -90,7 +90,7 @@ function brandHeaderBand(doc, topY, report) {
 function validityBadge(doc, iv) {
   doc.ensure(20);
   if (iv.recommendedAction?.suppressed) {
-    doc.text("Interview summary scores and automated recommendation are withheld. Review the recorded evidence before deciding the next step.", { size: 9, color: MUTED, gap: 8 });
+    doc.text("The automated recommendation is withheld — scores below are shown as recorded, but a human must review the transcript before deciding the next step.", { size: 9, color: MUTED, gap: 8 });
   } else if (iv.engine === "fallback") {
     doc.text(
       "FALLBACK ENGINE — the real AI evaluation did not run. Every score below is a PLACEHOLDER from answer-completeness heuristics, not a real evaluation. A human must review the transcript directly.",

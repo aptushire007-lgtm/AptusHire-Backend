@@ -49,6 +49,13 @@ exports.dashboardSummary = async (req, res) => {
       return { label: `${end.getDate()} ${end.toLocaleString("en", { month: "short" })}`, count: result.weeks?.find(row => row._id === 11 - index)?.count || 0 };
     }),
     stages: stages.slice(0, 6), totalWithStage: stages.reduce((sum, row) => sum + row[1], 0) || 1,
+    // `stages` is truncated to the six biggest for the dashboard funnel chart.
+    // A caller that needs a SPECIFIC stage (the Candidates page KPI tiles and
+    // filter chips) cannot read it from that list: a stage outside the top six
+    // is absent, and "absent" is indistinguishable from "zero" — which is how a
+    // real count silently becomes a wrong one. This carries every active stage,
+    // so a caller asking for one it does not find can trust the zero.
+    stageCounts: Object.fromEntries(stages),
     shortlisted: stages.find(row => row[0] === "shortlisted")?.[1] || 0,
     joined: stages.find(row => row[0] === "joined")?.[1] || 0,
     recent: result.recent || [], upcomingInterviews: result.interviews || [],

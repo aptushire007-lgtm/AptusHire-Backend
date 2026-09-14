@@ -11,6 +11,7 @@ const {
   listPublications,
   publishBoards,
   withdrawBoard,
+  generateJobDescription,
 } = require("../controllers/jobController");
 const { applyToJob, autofillFromResume, listCandidatesForJob } = require("../controllers/candidateController");
 const upload = require("../middleware/upload");
@@ -25,10 +26,12 @@ const requireAdmin = [requireAuth, requireRole("admin"), requireActiveCompany, r
 const requireCandidate = [requireAuth, requireRole("candidate")];
 
 router.get("/published", listPublishedJobs);
+router.post("/generate-jd", requireAdmin, generateJobDescription);
 router.get("/setup-drafts", requireAdmin, setup.list);
 router.post("/setup-drafts", requireAdmin, setup.create);
 router.get("/setup-drafts/:draftId", requireAdmin, setup.read);
 router.patch("/setup-drafts/:draftId", requireAdmin, setup.save);
+router.delete("/setup-drafts/:draftId", requireAdmin, setup.remove);
 router.post("/setup-drafts/:draftId/materialize", requireAdmin, setup.materialize);
 router.post("/setup-drafts/:draftId/review-journey", requireAdmin, setup.reviewJourney);
 router.get("/:id/readiness", requireAdmin, setup.readiness);

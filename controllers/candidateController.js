@@ -601,7 +601,14 @@ async function relatedApplications(req, res) {
 }
 
 async function getCandidate(req, res) {
-  const candidate = await Candidate.findOne({ _id: req.params.id, company: req.user.company }).populate("job", "title");
+  // `assessmentPolicy` rides along with the title because the candidate drawer's
+  // skills-test gate has to say WHY it cannot send a test. Without it the gate
+  // could only offer the button and let the 409 explain afterwards, which turns
+  // a stated precondition into a failed action.
+  const candidate = await Candidate.findOne({ _id: req.params.id, company: req.user.company }).populate(
+    "job",
+    "title assessmentPolicy"
+  );
   if (!candidate) return res.status(404).json({ error: "Candidate not found" });
   res.json(candidate);
 }

@@ -357,6 +357,10 @@ async function deleteJob(req, res) {
   require("../services/jobPublishService")
     .withdrawAllForJob(job._id, req.user.company, "job deleted")
     .catch((err) => console.error(`[publish] withdraw-all failed for job ${job._id}:`, err.message));
+  // Clean up any linked or reserved setup drafts for this job so no zombie setups persist
+  await require("../models/SetupDraft")
+    .deleteMany({ company: req.user.company, $or: [{ job: job._id }, { reservedJobId: job._id }] })
+    .catch((err) => console.error(`[setupDraft] cleanup failed for deleted job ${job._id}:`, err.message));
   res.status(204).send();
 }
 
@@ -427,6 +431,127 @@ async function withdrawBoard(req, res) {
   res.json({ ok: true });
 }
 
+// POST /api/jobs/generate-jd  body: { title, department, location }
+async function generateJobDescription(req, res) {
+  const title = String(req.body?.title || "").trim();
+  if (!title) {
+    return res.status(400).json({ error: "Job title is required to generate a job description" });
+  }
+
+  const requestedDepartment = String(req.body?.department || "").trim();
+  const requestedLocation = String(req.body?.location || "").trim();
+
+  // Deterministic fallback generator
+  function fallbackJD(t) {
+    const lower = t.toLowerCase();
+    let dept = requestedDepartment;
+    if (!dept) {
+      if (/engineer|developer|frontend|backend|fullstack|devops|qa|architect|software|cloud/i.test(lower)) dept = "Engineering";
+      else if (/design|ux|ui|graphic|product designer/i.test(lower)) dept = "Design";
+      else if (/product manager|product owner|program manager/i.test(lower)) dept = "Product";
+      else if (/marketing|growth|seo|content|social/i.test(lower)) dept = "Marketing";
+      else if (/sales|account|business development|bdm/i.test(lower)) dept = "Sales";
+      else if (/hr|recruiter|people|talent/i.test(lower)) dept = "Human Resources";
+      else if (/finance|accountant|analyst|audit/i.test(lower)) dept = "Finance";
+      else dept = "General";
+    }
+
+    let minExp = 3;
+    if (/lead|principal|staff|director|head|vp/i.test(lower)) minExp = 7;
+    else if (/senior|sr/i.test(lower)) minExp = 5;
+    else if (/junior|jr|intern|associate|entry/i.test(lower)) minExp = 1;
+
+    const skills = [];
+    if (/frontend|react|vue|angular/i.test(lower)) skills.push("React", "JavaScript", "TypeScript", "HTML5 & CSS3", "Responsive UI");
+    if (/backend|node|express|api/i.test(lower)) skills.push("Node.js", "Express", "RESTful APIs", "SQL", "System Architecture");
+    if (/fullstack|full stack/i.test(lower)) skills.push("React", "Node.js", "TypeScript", "Database Design", "API Development");
+    if (/python|data|ml|machine learning|ai/i.test(lower)) skills.push("Python", "Machine Learning", "Data Analysis", "SQL", "Model Evaluation");
+    if (/devops|cloud|infrastructure/i.test(lower)) skills.push("AWS", "Docker", "Kubernetes", "CI/CD Pipelines", "Terraform");
+    if (/design|ui|ux/i.test(lower)) skills.push("Figma", "Design Systems", "Prototyping", "User Research", "Wireframing");
+    if (/product/i.test(lower)) skills.push("Product Strategy", "Roadmapping", "Agile / Scrum", "Data-Driven Prioritization", "Stakeholder Management");
+    if (/marketing/i.test(lower)) skills.push("Growth Marketing", "Campaign Strategy", "SEO / SEM", "Content Strategy", "Analytics");
+    if (skills.length === 0) skills.push("Communication", "Problem Solving", "Project Management", "Analytical Skills");
+
+    const description = `About the Role:\nWe are seeking a talented, proactive ${t} to join our team. In this position, you will take ownership of key initiatives, collaborate closely with cross-functional team members, and contribute directly to high-impact products and customer solutions.\n\nKey Responsibilities:\n• Lead and contribute to core deliverables aligned with our strategic roadmap.\n• Collaborate with cross-functional stakeholders including engineering, design, and operations.\n• Establish best practices, maintain quality standards, and drive continuous optimization.\n• Identify operational and architectural opportunities to scale workflows efficiently.\n• Mentor teammates and champion a culture of continuous learning and delivery.`;
+
+    const requirements = `Requirements & Qualifications:\n• Proven experience working as a ${t} or in a directly related professional capacity.\n• Demonstrated track record of delivering high-quality outcomes in a collaborative environment.\n• Strong problem-solving, diagnostic, and analytical capabilities.\n• Exceptional written and verbal communication skills across technical and business audiences.\n• Bachelor's degree in a relevant field or equivalent practical experience.`;
+
+    return {
+      title: t,
+      department: dept,
+      location: requestedLocation || "Remote / Hybrid",
+      description,
+      requirements,
+      requiredSkills: skills,
+      minExperienceYears: minExp,
+      requiredEducation: "Bachelor's Degree",
+      numberOfOpenings: 1,
+      atsThreshold: 60,
+      generatedBy: "fallback",
+    };
+  }
+
+  const llm = require("../services/llmService");
+  if (!llm.isEnabled()) {
+    return res.json(fallbackJD(title));
+  }
+
+  try {
+    const prompt = `Generate a comprehensive, modern job description for the role: "${title}".
+Department preference: ${requestedDepartment || "Infer appropriate department"}
+Location preference: ${requestedLocation || "Remote / Hybrid"}
+
+Provide:
+1. description: A clear 2-3 paragraph overview of the role, team context, and bulleted Key Responsibilities.
+2. requirements: Clear bulleted Requirements & Qualifications (experience, mindset, soft skills, practical background).
+3. requiredSkills: Array of 4 to 6 top required technical or role-specific skills (e.g. ["React", "TypeScript", "Node.js"]).
+4. minExperienceYears: Suggested minimum years of experience as an integer (e.g. 1, 3, 5, 7).
+5. department: Appropriate department name (e.g. "Engineering", "Design", "Product", "Marketing").
+6. requiredEducation: Standard education requirement (e.g. "Bachelor's Degree in Computer Science or related field").`;
+
+    const schema = {
+      type: "object",
+      properties: {
+        description: { type: "string" },
+        requirements: { type: "string" },
+        requiredSkills: { type: "array", items: { type: "string" } },
+        minExperienceYears: { type: "number" },
+        department: { type: "string" },
+        requiredEducation: { type: "string" },
+        atsThreshold: { type: "number" },
+      },
+      required: ["description", "requirements", "requiredSkills"],
+      additionalProperties: false,
+    };
+
+    const { data } = await llm.generateJSON({
+      system: "You are an expert HR and recruitment director. Output precise, production-ready job descriptions with clear responsibilities and measurable qualifications in valid JSON format.",
+      prompt,
+      schema,
+      temperature: 0.2,
+      maxTokens: 1024,
+      promptVersion: "jd_gen_v1",
+    });
+
+    res.json({
+      title,
+      department: data.department || requestedDepartment || "General",
+      location: requestedLocation || "Remote / Hybrid",
+      description: data.description || fallbackJD(title).description,
+      requirements: data.requirements || fallbackJD(title).requirements,
+      requiredSkills: Array.isArray(data.requiredSkills) && data.requiredSkills.length ? data.requiredSkills : fallbackJD(title).requiredSkills,
+      minExperienceYears: typeof data.minExperienceYears === "number" ? data.minExperienceYears : fallbackJD(title).minExperienceYears,
+      requiredEducation: data.requiredEducation || "Bachelor's Degree",
+      numberOfOpenings: 1,
+      atsThreshold: 60,
+      generatedBy: "ai",
+    });
+  } catch (err) {
+    console.warn(`[jobController] AI JD generation failed (${err.message}), falling back to deterministic template`);
+    res.json(fallbackJD(title));
+  }
+}
+
 module.exports = {
   createJob,
   listJobs,
@@ -438,4 +563,6 @@ module.exports = {
   listPublications,
   publishBoards,
   withdrawBoard,
+  generateJobDescription,
 };
+

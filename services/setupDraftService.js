@@ -80,4 +80,9 @@ async function materialize(user, id, input) {
   const linked = await SetupDraft.findOneAndUpdate({ ...scope(user, id), state: "creating" }, { $set: { job: job._id, state: "linked", currentStep: "evaluation" }, $inc: { revision: 1 } }, { new: true, runValidators: true }).lean();
   return linked || read(user, id);
 }
-module.exports = { scope, serialize, read, create, save, materialize };
+async function remove(user, id) {
+  const draft = await SetupDraft.findOneAndDelete(scope(user, id)).lean();
+  if (!draft) throw contract.problem(404, "Setup draft not found.", "DRAFT_NOT_FOUND");
+  return draft;
+}
+module.exports = { scope, serialize, read, create, save, materialize, remove };
