@@ -43,6 +43,20 @@ const experienceEntrySchema = new mongoose.Schema(
   { _id: true }
 );
 
+// Auto-apply (candidate opts in to automatic submission against their own
+// Strong/Good matches). `resumeVersion` is required by the controller before
+// `enabled` is ever set true — the job simply has nothing to submit otherwise.
+const autoApplySchema = new mongoose.Schema(
+  {
+    enabled: { type: Boolean, default: false },
+    resumeVersion: { type: mongoose.Schema.Types.ObjectId, ref: "ResumeVersion" },
+    includeGoodMatches: { type: Boolean, default: false },
+    lastRunAt: { type: Date },
+    updatedAt: { type: Date },
+  },
+  { _id: false }
+);
+
 const preferencesSchema = new mongoose.Schema(
   {
     jobAlerts: { type: Boolean, default: true },
@@ -80,9 +94,14 @@ const candidateProfileSchema = new mongoose.Schema(
     education: { type: [educationEntrySchema], default: [] },
     experience: { type: [experienceEntrySchema], default: [] },
     preferences: { type: preferencesSchema, default: () => ({}) },
+    autoApply: { type: autoApplySchema, default: () => ({}) },
 
     savedJobs: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Job" }], default: [] },
     dismissedJobs: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Job" }], default: [] },
+    // When each entry in savedJobs was saved, keyed by job id (string). Kept
+    // separate from savedJobs itself so existing profiles (a plain ObjectId
+    // array) never need a migration — an id missing here just has no saved date.
+    savedJobsSavedAt: { type: Map, of: Date, default: () => new Map() },
 
     profileCompletionPercent: { type: Number, default: 0, min: 0, max: 100 },
     strengthScore: { type: Number, default: 0, min: 0, max: 100 },

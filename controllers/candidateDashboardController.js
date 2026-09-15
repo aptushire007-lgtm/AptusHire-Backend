@@ -28,6 +28,10 @@ const { rankRecommendedJobs } = require("../utils/candidateRecommendations");
 const { openSessionForOwner } = require("./interviewPortalController");
 const { getJson, setJson } = require("../services/redisCache");
 
+function truthy(v) {
+  return v === true || v === "true" || v === "on" || v === "1" || v === 1;
+}
+
 async function getOrCreateProfile(userId) {
   let profile = await CandidateProfile.findOne({ user: userId });
   if (!profile) {
@@ -81,9 +85,12 @@ async function getDashboard(req, res) {
   // Fetch one indexed, recent candidate-safe pool, then rank it in memory using
   // the profile and latest/default resume signals. This avoids an N+1 query per
   // candidate/job while still making relevance the primary ordering signal.
+  // Saved jobs stay in the pool (and can be ranked back into recommendations) —
+  // saving a job must not make it vanish from the candidate's recommendations.
+  // Applied/dismissed jobs are still excluded since those processes are settled.
   const recommendationPool = await Job.find({
     status: "published",
-    _id: { $nin: [...appliedJobIds, ...profile.savedJobs, ...(profile.dismissedJobs || [])] },
+    _id: { $nin: [...appliedJobIds, ...(profile.dismissedJobs || [])] },
   })
     .select("-numberOfOpenings -filledOpenings -pendingOffers -autoClosedAt -closureReason")
     .populate("company", "name")
@@ -97,9 +104,14 @@ async function getDashboard(req, res) {
     limit: 5,
   });
 
-  const savedJobs = await Job.find({ _id: { $in: profile.savedJobs }, status: "published" })
+  const savedJobDocs = await Job.find({ _id: { $in: profile.savedJobs }, status: "published" })
     .select("-numberOfOpenings -filledOpenings -pendingOffers -autoClosedAt -closureReason")
-    .populate("company", "name");
+    .populate("company", "name")
+    .lean();
+  const savedJobs = savedJobDocs.map((job) => ({
+    ...job,
+    savedAt: profile.savedJobsSavedAt?.get(String(job._id)) || null,
+  }));
 
   const notifications = await Notification.find({
     $or: [{ candidate: { $in: applicationIds } }, { user: user._id }],
@@ -321,12 +333,65 @@ async function toggleSavedJob(req, res) {
 
   if (index >= 0) {
     profile.savedJobs.splice(index, 1);
+    profile.savedJobsSavedAt?.delete(String(jobId));
   } else {
     profile.savedJobs.push(jobId);
+    if (!profile.savedJobsSavedAt) profile.savedJobsSavedAt = new Map();
+    profile.savedJobsSavedAt.set(String(jobId), new Date());
   }
 
   await profile.save();
   res.json({ saved: index < 0, savedJobs: profile.savedJobs });
+}
+
+// GET /candidate-dashboard/auto-apply
+function autoApplyView(autoApply) {
+  const auto = autoApply || {};
+  return {
+    enabled: !!auto.enabled,
+    includeGoodMatches: !!auto.includeGoodMatches,
+    resumeVersionId: auto.resumeVersion || null,
+    lastRunAt: auto.lastRunAt || null,
+    updatedAt: auto.updatedAt || null,
+  };
+}
+
+async function getAutoApplySettings(req, res) {
+  const profile = await getOrCreateProfile(req.user._id);
+  res.json(autoApplyView(profile.autoApply));
+}
+
+// PUT /candidate-dashboard/auto-apply  { enabled, resumeVersionId, includeGoodMatches }
+//
+// Turning it on requires a résumé already in the candidate's own library —
+// the cron (jobs/autoApplyJob.js) has no form to fall back on, so there must
+// be a file to submit the moment this save succeeds. Turning off keeps the
+// last-chosen résumé/preference on the document (nothing to lose by
+// remembering them) so re-enabling later doesn't ask again.
+async function updateAutoApplySettings(req, res) {
+  const enabled = truthy(req.body.enabled);
+  const includeGoodMatches = truthy(req.body.includeGoodMatches);
+  const resumeVersionId = String(req.body.resumeVersionId || "").trim();
+
+  const profile = await getOrCreateProfile(req.user._id);
+  profile.autoApply = profile.autoApply || {};
+
+  if (enabled) {
+    if (!resumeVersionId || !mongoose.isValidObjectId(resumeVersionId)) {
+      return res.status(400).json({ error: "Select a resume to turn on auto-apply." });
+    }
+    const version = await ResumeVersion.findOne({ _id: resumeVersionId, user: req.user._id, isArchived: false });
+    if (!version) return res.status(404).json({ error: "Resume not found" });
+    profile.autoApply.enabled = true;
+    profile.autoApply.resumeVersion = version._id;
+    profile.autoApply.includeGoodMatches = includeGoodMatches;
+  } else {
+    profile.autoApply.enabled = false;
+  }
+  profile.autoApply.updatedAt = new Date();
+
+  await profile.save();
+  res.json(autoApplyView(profile.autoApply));
 }
 
 async function dismissRecommendedJob(req, res) {
@@ -518,6 +583,8 @@ module.exports = {
   getOwnRejectionReport,
   toggleSavedJob,
   dismissRecommendedJob,
+  getAutoApplySettings,
+  updateAutoApplySettings,
   openOwnSession,
   resendOwnSessionLink,
   initializeDashboard,

@@ -185,31 +185,31 @@ async function autofillFromResume(req, res) {
   res.json(payload);
 }
 
-async function applyToJob(req, res) {
-  const { id: jobIdOrSlug } = req.params;
+// Core creation logic behind every application — human-submitted or
+// auto-applied. Framework-free (no req/res) so it can be called equally from
+// the HTTP route below and from the auto-apply cron (jobs/autoApplyJob.js).
+// Rejections are thrown as an Error carrying `.status`, the same shape
+// loadOwnSession() already uses elsewhere, so a caller can map it straight
+// onto a response — or, for the cron, just log it and move to the next job.
+//
+// `resumeRef` must already be resolved to the shape resolveResumeRef()
+// produces (a direct upload's `{ file }`, or a library résumé's
+// `{ resume: { filePath, autofill }, resumeVersionId, versionDoc }`) — this
+// function does not know how to look one up itself.
+async function createApplicationForCandidate({
+  job,
+  email,
+  candidateUser,
+  resumeRef,
+  formFields = {},
+  consent = {},
+  source,
+  ip,
+}) {
   const { name, phone, location, linkedinUrl, portfolioUrl, experience, education, skills, projects, certificates } =
-    req.body;
-  const consentAi = truthy(req.body.consentAiProcessing);
-  const consentData = truthy(req.body.consentDataProcessing);
-
-  // The application is bound to the signed-in account, never a form value — a
-  // free-form email would let anyone apply as any address and route another
-  // person's notifications and interview link. `candidateUser` is the stable
-  // relational identity (Phase 17); email stays as the human-readable key and
-  // the legacy/no-account fallback.
-  const email = String(req.user.email || "").toLowerCase().trim();
-  const candidateUser = req.user._id;
-
-  const job = await Job.findByIdOrSlug(jobIdOrSlug);
-  if (!job || job.status !== "published") {
-    return res.status(404).json({ error: "Job not found or not accepting applications" });
-  }
-  const resumeRef = await resolveResumeRef(req, email);
-  if (!resumeRef) {
-    return res.status(400).json({ error: "Resume file is required" });
-  }
+    formFields;
   if (!name || !email) {
-    return res.status(400).json({ error: "Name and email are required" });
+    throw Object.assign(new Error("Name and email are required"), { status: 400 });
   }
 
   // One application per job per person. The unique (job, email) and
@@ -222,7 +222,10 @@ async function applyToJob(req, res) {
     $or: [{ candidateUser }, { "basicDetails.email": email }],
   }).select("_id");
   if (existing) {
-    return res.status(409).json({ error: "You have already applied to this job. You can track it from your dashboard." });
+    throw Object.assign(
+      new Error("You have already applied to this job. You can track it from your dashboard."),
+      { status: 409 }
+    );
   }
 
   // Expired tenant ⇒ jobs stop accepting applications (Phase 11.2). The
@@ -231,7 +234,7 @@ async function applyToJob(req, res) {
   const { assess } = require("../services/subscriptionLifecycleService");
   const subState = assess(await Subscription.findOne({ company: job.company }).select("status currentPeriodEnd"));
   if (subState === "expired") {
-    return res.status(404).json({ error: "Job not found or not accepting applications" });
+    throw Object.assign(new Error("Job not found or not accepting applications"), { status: 404 });
   }
 
   // Plan quotas (Phase 11.1): parsing count + storage, both blocked BEFORE the
@@ -255,9 +258,10 @@ async function applyToJob(req, res) {
     // The stored resume file could not be fetched (stale reference, deleted
     // from Cloudinary, or a pre-Cloudinary local path). Ask the candidate to
     // re-upload rather than surfacing a raw storage error.
-    return res.status(400).json({
-      error: "We could not retrieve your saved resume. Please upload your resume file directly to continue.",
-    });
+    throw Object.assign(
+      new Error("We could not retrieve your saved resume. Please upload your resume file directly to continue."),
+      { status: 400 }
+    );
   }
   const resumeKey = await storageService.putObject({
     buffer: resumeBuffer,
@@ -312,7 +316,7 @@ async function applyToJob(req, res) {
         // Only meaningful when the machine actually contributed something; an
         // attestation recorded for a hand-typed form would be noise in the audit.
         attestedAt: usedAutofill ? new Date() : undefined,
-        ipAddress: usedAutofill ? req.ip : undefined,
+        ipAddress: usedAutofill ? ip : undefined,
       },
       resumePath: resumeKey,
       resumeOriginalName: resumeRef.originalName,
@@ -321,17 +325,20 @@ async function applyToJob(req, res) {
       stageHistory: [{ stage: "applied", by: "system" }],
       // Phase 15.1 — source attribution from the apply link's ?src= / ?campaign=.
       // Sanitised, analytics-only; never a scoring input.
-      source: buildSource(req.body),
+      source,
       consent: {
-        aiProcessing: consentAi,
-        dataProcessing: consentData,
-        at: consentAi || consentData ? new Date() : undefined,
-        ipAddress: req.ip,
+        aiProcessing: !!consent.aiProcessing,
+        dataProcessing: !!consent.dataProcessing,
+        at: consent.aiProcessing || consent.dataProcessing ? new Date() : undefined,
+        ipAddress: ip,
       },
     });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(409).json({ error: "You have already applied to this job. You can track it from your dashboard." });
+      throw Object.assign(
+        new Error("You have already applied to this job. You can track it from your dashboard."),
+        { status: 409 }
+      );
     }
     throw err;
   }
@@ -353,6 +360,50 @@ async function applyToJob(req, res) {
     } catch (e) {
       console.error(`[resumeVersion] failed to update shareLog: ${e.message}`);
     }
+  }
+
+  return candidate;
+}
+
+async function applyToJob(req, res) {
+  const { id: jobIdOrSlug } = req.params;
+  const { name, phone, location, linkedinUrl, portfolioUrl, experience, education, skills, projects, certificates } =
+    req.body;
+  const consentAi = truthy(req.body.consentAiProcessing);
+  const consentData = truthy(req.body.consentDataProcessing);
+
+  // The application is bound to the signed-in account, never a form value — a
+  // free-form email would let anyone apply as any address and route another
+  // person's notifications and interview link. `candidateUser` is the stable
+  // relational identity (Phase 17); email stays as the human-readable key and
+  // the legacy/no-account fallback.
+  const email = String(req.user.email || "").toLowerCase().trim();
+  const candidateUser = req.user._id;
+
+  const job = await Job.findByIdOrSlug(jobIdOrSlug);
+  if (!job || job.status !== "published") {
+    return res.status(404).json({ error: "Job not found or not accepting applications" });
+  }
+  const resumeRef = await resolveResumeRef(req, email);
+  if (!resumeRef) {
+    return res.status(400).json({ error: "Resume file is required" });
+  }
+
+  let candidate;
+  try {
+    candidate = await createApplicationForCandidate({
+      job,
+      email,
+      candidateUser,
+      resumeRef,
+      formFields: { name, phone, location, linkedinUrl, portfolioUrl, experience, education, skills, projects, certificates },
+      consent: { aiProcessing: consentAi, dataProcessing: consentData },
+      source: buildSource(req.body),
+      ip: req.ip,
+    });
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
+    throw err;
   }
 
   // Respond the moment the application is durably stored. Screening (which in
@@ -1306,6 +1357,8 @@ async function getInterviewReportPdf(req, res) {
 
 module.exports = {
   applyToJob,
+  createApplicationForCandidate,
+  runPostApplyPipeline,
   autofillFromResume,
   listCandidates,
   listCandidatesForJob,

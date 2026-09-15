@@ -52,6 +52,11 @@ function scoreJob(job, signals, now = Date.now()) {
   return {
     score: skillScore + domainScore + experienceScore + recencyScore,
     matchedSkills: matchedRequired,
+    // Experience/recency alone would let a job with zero skill or keyword
+    // overlap still score above 0 and take a recommendation slot. Track real
+    // overlap separately so "recommended" means profile/resume-matched, not
+    // just "newest job that wasn't excluded".
+    hasProfileMatch: matchedRequired.length > 0 || matchingWords.length > 0,
   };
 }
 
@@ -59,6 +64,7 @@ function rankRecommendedJobs(jobs, { profile, resumes, now = Date.now(), limit =
   const signals = candidateSignals({ profile, resumes });
   return jobs
     .map((job) => ({ job, ranking: scoreJob(job, signals, now) }))
+    .filter(({ ranking }) => ranking.hasProfileMatch)
     .sort((a, b) => b.ranking.score - a.ranking.score || new Date(b.job.createdAt || 0) - new Date(a.job.createdAt || 0))
     .slice(0, limit)
     .map(({ job, ranking }) => ({ ...job, recommendationScore: Math.round(ranking.score), matchedSkills: ranking.matchedSkills }));

@@ -57,8 +57,7 @@ module.exports = {
 
   /**
    * Cron jobs to start when this module is enabled.
-   * Empty for ATS — its cron needs are covered by core (publishReconcileJob).
    */
-  crons: [],
+  crons: [{ module: "../../jobs/autoApplyJob", start: "startAutoApplyJob" }],
 };
 
